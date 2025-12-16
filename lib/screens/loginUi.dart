@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/screens/otpUi.dart';
 import 'package:hotel_booking_app/screens/registerUI.dart';
 import 'package:hotel_booking_app/widgets/vectorWaveClipper.dart';
 
@@ -103,7 +104,12 @@ class LoginUI extends StatelessWidget {
             SizedBox(height: 20),
 
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OtpScreen()),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF5496D2),
                 foregroundColor: Colors.white,
