@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/screens/loginUi.dart';
+import 'package:hotel_booking_app/screens/menuUI.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,10 +15,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Hottel Booking',
       debugShowCheckedModeBanner: false,
+      // debugShowMaterialGrid: true,
+      // showSemanticsDebugger: true,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
       ),
       home: const LoginUI(),
+      // home :  MenuUi(),
     );
   }
 }
