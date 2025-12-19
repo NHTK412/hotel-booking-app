@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/screens/bookUI.dart';
 import 'package:readmore/readmore.dart';
 
 class DetailCart extends StatefulWidget {
@@ -85,7 +86,12 @@ class _DetailCartState extends State<DetailCart> {
 
   Widget button() {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BookUi()),
+        );
+      },
       child: Text("Đặt Phòng"),
       style: ElevatedButton.styleFrom(
         minimumSize: Size(double.infinity, 50),

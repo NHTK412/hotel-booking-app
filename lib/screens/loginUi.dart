@@ -144,6 +144,49 @@ class LoginUI extends StatelessWidget {
                 ),
               ),
             ),
+
+            SizedBox(height: 10),
+
+            Center(
+              child: Text(
+                "Hoặc",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ),
+            SizedBox(height: 10),
+
+            InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                // alignment: Alignment.center,
+                // margin: EdgeInsets.symmetric(horizontal: 80),
+                width: size.width * 0.7,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image(
+                      image: NetworkImage(
+                        "https://tse4.mm.bing.net/th/id/OIP.lsGmVmOX789951j9Km8RagHaHa?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3",
+                      ),
+                      width: 30,
+                      height: 30,
+                      fit: BoxFit.contain,
+                    ),
+                    SizedBox(width: 20),
+                    Text(
+                      "Đăng nhập với Google",
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

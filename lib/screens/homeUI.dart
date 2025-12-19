@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/screens/detailCart.dart';
+import 'package:hotel_booking_app/screens/findUI.dart';
 
 class HomeUi extends StatefulWidget {
   const HomeUi({super.key});
@@ -197,7 +198,11 @@ class _HomeUiState extends State<HomeUi> {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) {
+                            return FindUi();
+                          }));
+                        },
                         child: Text(
                           "Xem tất cả",
                           style: TextStyle(color: Colors.blue),
