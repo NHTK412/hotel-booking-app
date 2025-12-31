@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/data/repositories/accommodationRepository.dart';
+import 'package:hotel_booking_app/data/service/accommodationService.dart';
 import 'package:hotel_booking_app/screens/detailCart.dart';
-import 'package:hotel_booking_app/screens/findUI.dart';
+import 'package:hotel_booking_app/screens/hotalUi.dart';
+import 'package:hotel_booking_app/screens/searchUi.dart';
+
+import '../data/model/accommodation/accommodationSummary.dart';
+import '../data/model/apiResponse.dart';
 
 class HomeUi extends StatefulWidget {
   const HomeUi({super.key});
@@ -12,6 +18,22 @@ class HomeUi extends StatefulWidget {
 }
 
 class _HomeUiState extends State<HomeUi> {
+  final AccommodationRepository _accommodationRepository =
+      AccommodationRepository(AccommodationService());
+
+  // late Future<ApiResponse<List<AccommodationSummary>>> _fetchAll;
+
+  late final Future<ApiResponse<List<AccommodationSummary>>> _fetchAll =
+      _accommodationRepository.getAllAccommodations();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    // _fetchAll = _accommodationRepository.getAllAccommodations();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -49,8 +71,17 @@ class _HomeUiState extends State<HomeUi> {
                     padding: EdgeInsets.all(5),
 
                     // borderRadius: BorderRadius.circular(10),
-                    onPressed: () {},
-                    icon: Icon(Icons.notifications_none, size: 30),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return SearchUi();
+                          },
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.search, size: 30),
                   ),
                 ),
               ],
@@ -198,11 +229,7 @@ class _HomeUiState extends State<HomeUi> {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) {
-                            return FindUi();
-                          }));
-                        },
+                        onPressed: () {},
                         child: Text(
                           "Xem tất cả",
                           style: TextStyle(color: Colors.blue),
@@ -212,18 +239,52 @@ class _HomeUiState extends State<HomeUi> {
                   ),
 
                   // danh sách
-                  SingleChildScrollView(
-                    // padding: EdgeInsets.all(0),
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        createCart(),
-                        SizedBox(width: 15),
-                        createCart(),
-                        SizedBox(width: 15),
-                        createCart(),
-                        SizedBox(width: 15),
-                      ],
+                  // SingleChildScrollView(
+                  //   // padding: EdgeInsets.all(0),
+                  //   scrollDirection: Axis.horizontal,
+                  //   child: Row(
+                  //     children: [
+                  //       createCart(),
+                  //       SizedBox(width: 15),
+                  //       createCart(),
+                  //       SizedBox(width: 15),
+                  //       createCart(),
+                  //       SizedBox(width: 15),
+                  //     ],
+                  //   ),
+                  // ),
+                  Container(
+                    height: 300,
+                    child: FutureBuilder(
+                      future: _fetchAll,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Text("Error: ${snapshot.error}");
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.data!.isEmpty) {
+                          return const Text("No data");
+                        }
+
+                        List<AccommodationSummary> data = snapshot.data!.data!;
+
+                        // return Text("Số phần tử: ${snapshot.data!.data!.length}");
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: data.length,
+                          itemBuilder: (context, index) {
+                            // return createCart();
+                            return createCartWithData(data[index]);
+                          },
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -336,6 +397,7 @@ class _HomeUiState extends State<HomeUi> {
         // Giới hạn chiều rộng của card để giống trong hình
         //  padding: EdgeInsets.symmetric(vertical: 10),
         // width: 250,
+        margin: EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: Colors.white,
 
@@ -464,6 +526,177 @@ class _HomeUiState extends State<HomeUi> {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    //     ],
+    //   ),
+    // );
+  }
+
+  Widget createCartWithData(AccommodationSummary accommodationSummary) {
+    // return Container(
+    //   padding: EdgeInsets.symmetric(vertical: 10),
+    //   width: 250,
+    //   child: Column(
+    //     children: [
+    //       Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+
+          MaterialPageRoute(
+            builder: (context) => HotelUi(
+              accommodationId: accommodationSummary.accommodationId ?? 1,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        // padding: EdgeInsets.symmetric(vertical: 10),
+        width: 250,
+        // Giới hạn chiều rộng của card để giống trong hình
+        //  padding: EdgeInsets.symmetric(vertical: 10),
+        // width: 250,
+        margin: EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+
+          borderRadius: BorderRadius.circular(20), // Bo góc toàn bộ card
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1), // Màu bóng mờ
+              spreadRadius: 2,
+              blurRadius: 10,
+              offset: const Offset(0, 5), // Độ lệch bóng xuống dưới
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Căn lề trái nội dung
+          children: [
+            // --- PHẦN 1: ẢNH VÀ ICON TIM (Dùng Stack) ---
+            Stack(
+              children: [
+                // Ảnh nền
+                ClipRRect(
+                  // Chỉ bo góc trên trái và trên phải cho ảnh
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                  child: Image.network(
+                    "http://10.0.2.2:8080/api/images/${accommodationSummary.image}",
+                    height: 180,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
+                ),
+                // Icon Tim (Overlay)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.favorite,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // --- PHẦN 2: THÔNG TIN CHI TIẾT ---
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Dòng 1: Tên + Rating
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            // 'The Aston Vill Hotel',
+                            '${accommodationSummary.accommodationName}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.star, color: Colors.amber, size: 18),
+                            SizedBox(width: 4),
+                            Text(
+                              // '5.0',
+                              '${accommodationSummary.averageRating}',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Dòng 2: Địa chỉ
+                    Text(
+                      // 'Alice Springs NT 0870, Australia',
+                      '${accommodationSummary.address}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Dòng 3: Giá tiền (Dùng RichText để style 2 màu khác nhau)
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            // text: '\$200.7',
+                            // text: '{accommodationSummary.minPricePerNight} VNĐ',
+                            text:
+                                // '${accommodationSummary.minPricePerNight} VNĐ',
+                                '${accommodationSummary.getMinPricePerNightToString()} VNĐ',
+
+                            style: TextStyle(
+                              color: Colors.blue, // Màu xanh chủ đạo
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' /night',
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

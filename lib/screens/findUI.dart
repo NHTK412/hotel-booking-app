@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/screens/detailCart.dart';
 
 class FindUi extends StatefulWidget {
   const FindUi({super.key});
@@ -167,93 +168,197 @@ class _FindUiState extends State<FindUi> {
     );
   }
 
+  // Widget createPopularCard() {
+  //   return Container(
+  //     // padding: EdgeInsets.all(10),
+  //     decoration: BoxDecoration(
+  //       // color: Colors.yellow,
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(10),
+  //     ),
+  //     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+  //     // width: double.infinity,
+  //     child: Row(
+  //       children: [
+  //         ClipRRect(
+  //           borderRadius: BorderRadius.circular(17),
+  //           child: Image(
+  //             image: AssetImage("assets/images/anh.avif"),
+  //             width: 100,
+  //             height: 100,
+  //             fit: BoxFit.cover,
+  //           ),
+  //         ),
+
+  //         SizedBox(width: 10),
+  //         // Column(
+  //         //   children: [
+  //         Expanded(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Row(
+  //                 // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                 children: [
+  //                   //
+  //                   // SizedBox(width: 10),
+  //                   Expanded(
+  //                     child: Text(
+  //                       "The Aston Vill Hotel",
+  //                       style: TextStyle(
+  //                         fontSize: 16,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                   // Text(
+  //                   //   "The Aston Vill Hotel",
+  //                   //   style: TextStyle(
+  //                   //     fontSize: 16,
+  //                   //     fontWeight: FontWeight.bold,
+  //                   //   ),
+  //                   // ),
+  //                   Icon(Icons.star, color: Colors.amber, size: 18),
+  //                   SizedBox(width: 4),
+  //                   Text('5.0', style: TextStyle(fontWeight: FontWeight.bold)),
+  //                 ],
+  //               ),
+
+  //               SizedBox(height: 5),
+
+  //               Text("Alice Springs NT 0870, Australia"),
+
+  //               SizedBox(height: 15),
+
+  //               Text.rich(
+  //                 TextSpan(
+  //                   children: [
+  //                     TextSpan(
+  //                       text: '\$200.7',
+  //                       style: TextStyle(
+  //                         color: Colors.blue, // Màu xanh chủ đạo
+  //                         fontWeight: FontWeight.bold,
+  //                         fontSize: 18,
+  //                       ),
+  //                     ),
+  //                     TextSpan(
+  //                       text: ' /night',
+  //                       style: TextStyle(color: Colors.grey[400], fontSize: 14),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //     // ],
+  //     // ),
+  //   );
+  // }
+
   Widget createPopularCard() {
-    return Container(
-      // padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        // color: Colors.yellow,
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-      // width: double.infinity,
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(17),
-            child: Image(
-              image: AssetImage("assets/images/anh.avif"),
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DetailCart()),
+        );
+      },
+      child: Container(
+        // padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          // color: Colors.yellow,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        // width: double.infinity,
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(17),
+              child: Image(
+                image: AssetImage("assets/images/anh.avif"),
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
 
-          SizedBox(width: 10),
-          // Column(
-          //   children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    //
-                    // SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "The Aston Vill Hotel",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    // Text(
-                    //   "The Aston Vill Hotel",
-                    //   style: TextStyle(
-                    //     fontSize: 16,
-                    //     fontWeight: FontWeight.bold,
-                    //   ),
-                    // ),
-                    Icon(Icons.star, color: Colors.amber, size: 18),
-                    SizedBox(width: 4),
-                    Text('5.0', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-
-                SizedBox(height: 5),
-
-                Text("Alice Springs NT 0870, Australia"),
-
-                SizedBox(height: 15),
-
-                Text.rich(
-                  TextSpan(
+            SizedBox(width: 10),
+            // Column(
+            //   children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextSpan(
-                        text: '\$200.7',
-                        style: TextStyle(
-                          color: Colors.blue, // Màu xanh chủ đạo
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                      //
+                      // SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "The Aston Vill Hotel",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      TextSpan(
-                        text: ' /night',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                      // Text(
+                      //   "The Aston Vill Hotel",
+                      //   style: TextStyle(
+                      //     fontSize: 16,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
+                      Icon(Icons.star, color: Colors.amber, size: 18),
+                      SizedBox(width: 4),
+                      Text(
+                        '5.0',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                ),
-              ],
+
+                  SizedBox(height: 5),
+
+                  Text("Alice Springs NT 0870, Australia"),
+
+                  SizedBox(height: 15),
+
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '\$200.7',
+                          style: TextStyle(
+                            color: Colors.blue, // Màu xanh chủ đạo
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' /night',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+        // ],
+        // ),
       ),
-      // ],
-      // ),
     );
   }
 

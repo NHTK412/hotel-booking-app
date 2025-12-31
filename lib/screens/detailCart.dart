@@ -181,10 +181,12 @@ class _DetailCartState extends State<DetailCart> {
 
             textAlign: TextAlign.justify,
 
-            trimMode: TrimMode.Line, // dùng để cắt theo dòng
+            trimMode: TrimMode.Line,
 
-            trimLines: 3, // số dòng hiển thị ban đầu
+            // dùng để cắt theo dòng
+            trimLines: 3,
 
+            // số dòng hiển thị ban đầu
             colorClickableText: Colors.blue,
 
             style: TextStyle(
@@ -239,6 +241,7 @@ class _DetailCartState extends State<DetailCart> {
       ),
     );
   }
+
   // Widget category() {
   //   return Container(
   // width: double.infinity,

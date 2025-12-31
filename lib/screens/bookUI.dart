@@ -9,6 +9,24 @@ class BookUi extends StatefulWidget {
 }
 
 class _BookUiState extends State<BookUi> {
+  TextEditingController _dateController = TextEditingController();
+  TextEditingController _anotherController = TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    String formattedDate =
+        "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
+
+    _dateController.text = formattedDate;
+    String anotherFormattedDate =
+        "${DateTime.now().day + 1}/${DateTime.now().month}/${DateTime.now().year}";
+
+    _anotherController.text = anotherFormattedDate;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,65 +121,151 @@ class _BookUiState extends State<BookUi> {
 
   Widget formBooking() {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0), // Thêm padding cho đỡ sát lề
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Họ",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          // --- HÀNG CHỨA 2 NGÀY (Dùng Expanded để chia đôi) ---
+          Row(
+            children: [
+              // Cột 1: Ngày nhận phòng
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Ngày Nhận Phòng",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _dateController,
+                      readOnly: true, // Chỉ đọc, chặn bàn phím
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: "dd/mm/yyyy",
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 15,
+                        ),
+                        suffixIcon: Icon(Icons.calendar_today, size: 20),
+                        isDense: true, // Giúp ô input gọn hơn
+                      ),
+                      onTap: () => _selectDate(context, _dateController),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 16), // Khoảng cách giữa 2 ô ngày
+              // Cột 2: Ngày trả phòng
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Ngày Trả Phòng",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _anotherController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: "dd/mm/yyyy",
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 15,
+                        ),
+                        suffixIcon: Icon(Icons.calendar_today, size: 20),
+                        isDense: true,
+                      ),
+                      onTap: () => _selectDate(context, _anotherController),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
+
+          const SizedBox(height: 20),
+
+          // --- HỌ VÀ TÊN ---
+          Text(
+            "Họ và Tên",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 8),
           TextField(
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              hintText: "Ví dụ: Nguyễn",
+              hintText: "Ví dụ: Nguyễn Văn A",
+              prefixIcon: Icon(Icons.person), // Thêm icon cho trực quan
             ),
           ),
 
           const SizedBox(height: 20),
 
-          Text(
-            "Tên Đệm Và Tên",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: "Ví dụ: Văn A",
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
+          // --- SỐ ĐIỆN THOẠI (Quan trọng: Keyboard Type) ---
           Text(
             "Số Điện Thoại",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           TextField(
+            keyboardType: TextInputType.phone, // <--- Bàn phím số
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              hintText: "Ví dụ: 0123456789",
+              hintText: "Ví dụ: 0912345678",
+              prefixIcon: Icon(Icons.phone),
             ),
           ),
 
           const SizedBox(height: 20),
 
+          // --- EMAIL (Quan trọng: Keyboard Type) ---
           Text(
             "Email",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           TextField(
+            keyboardType: TextInputType.emailAddress, // <--- Bàn phím Email (@)
             decoration: InputDecoration(
               border: OutlineInputBorder(),
               hintText: "Ví dụ: example@email.com",
+              prefixIcon: Icon(Icons.email),
             ),
           ),
         ],
       ),
     );
+  }
+
+  // --- HÀM RIÊNG ĐỂ XỬ LÝ CHỌN NGÀY (Tránh lặp code) ---
+  Future<void> _selectDate(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        controller.text = "${picked.day}/${picked.month}/${picked.year}";
+      });
+    }
   }
 
   Widget headerBooking() {

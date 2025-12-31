@@ -69,14 +69,16 @@ class LoginUI extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 60),
+            SizedBox(height: 15),
             Container(
+              width: size.width * 0.8,
+
               decoration: BoxDecoration(
                 color: Color(0xFFF0EEFD),
                 borderRadius: BorderRadius.circular(50),
               ),
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-              margin: EdgeInsets.symmetric(horizontal: 30),
+              // margin: EdgeInsets.symmetric(horizontal: 30),
               child: Row(
                 children: [
                   Icon(Icons.email, color: Colors.blue),
@@ -84,6 +86,7 @@ class LoginUI extends StatelessWidget {
                   Expanded(
                     // <-- Thêm Expanded ở đây
                     child: TextField(
+                      style: TextStyle(fontSize: 14),
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
@@ -100,7 +103,40 @@ class LoginUI extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(height: 10),
+            Container(
+              width: size.width * 0.8,
 
+              decoration: BoxDecoration(
+                color: Color(0xFFF0EEFD),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+              margin: EdgeInsets.symmetric(horizontal: 30),
+              child: Row(
+                children: [
+                  Icon(Icons.password, color: Colors.blue),
+                  SizedBox(width: 10),
+                  Expanded(
+                    // <-- Thêm Expanded ở đây
+                    child: TextField(
+                      style: TextStyle(fontSize: 14),
+
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        // icon: Icon(Icons.email),
+                        hintText: "Password",
+                        border: InputBorder.none,
+                        // border: OutlineInputBorder(
+                        //   borderRadius: BorderRadius.circular(8),
+                        // ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(height: 20),
 
             ElevatedButton(
@@ -113,48 +149,86 @@ class LoginUI extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF5496D2),
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 70, vertical: 15),
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
               child: Text(
                 "ĐĂNG NHẬP",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-
-            SizedBox(height: 20),
-
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const RegisterUI()),
-                );
-              },
-              child: const Text(
-                "Tại tài khoản mới ?",
-                style: TextStyle(
-                  color: Color(0xFF8F91BF),
-                  fontSize: 16,
-                  decoration: TextDecoration.underline,
-                  fontWeight: FontWeight.bold,
-                  decorationColor: Color(0xFF8F91BF),
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ),
 
             SizedBox(height: 10),
 
+            TextButton(
+              onPressed: () {},
+              child: const Text(
+                "Quên mật khẩu?",
+                style: TextStyle(color: Color(0xFF8F91BF)),
+              ),
+            ),
+
+            // SizedBox(height: 20),
+
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: [
+            //     TextButton(
+            //       style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            //       onPressed: () {
+            //         // Navigator.push(
+            //         //   context,
+            //         //   MaterialPageRoute(
+            //         //     builder: (context) => const RegisterUI(),
+            //         //   ),
+            //         // );
+            //       },
+            //       child: const Text(
+            //         "Quên mật khẩu?",
+            //         style: TextStyle(
+            //           color: Color(0xFF8F91BF),
+            //           fontSize: 15,
+            //           decoration: TextDecoration.underline,
+            //           fontWeight: FontWeight.bold,
+            //           decorationColor: Color(0xFF8F91BF),
+            //         ),
+            //       ),
+            //     ),
+            //     const SizedBox(width: 2),
+            //     TextButton(
+            //       style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            //       onPressed: () {
+            //         Navigator.push(
+            //           context,
+            //           MaterialPageRoute(
+            //             builder: (context) => const RegisterUI(),
+            //           ),
+            //         );
+            //       },
+            //       child: const Text(
+            //         "Đăng ký?",
+            //         style: TextStyle(
+            //           color: Color(0xFF8F91BF),
+            //           fontSize: 15,
+            //           decoration: TextDecoration.underline,
+            //           fontWeight: FontWeight.bold,
+            //           decorationColor: Color(0xFF8F91BF),
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // SizedBox(height: 5),
             Center(
               child: Text(
                 "Hoặc",
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ),
-            SizedBox(height: 10),
 
+            SizedBox(height: 5),
             InkWell(
               onTap: () {},
               borderRadius: BorderRadius.circular(10),
@@ -162,7 +236,8 @@ class LoginUI extends StatelessWidget {
                 // alignment: Alignment.center,
                 // margin: EdgeInsets.symmetric(horizontal: 80),
                 width: size.width * 0.7,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                // padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(10),
@@ -171,9 +246,10 @@ class LoginUI extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image(
-                      image: NetworkImage(
-                        "https://tse4.mm.bing.net/th/id/OIP.lsGmVmOX789951j9Km8RagHaHa?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3",
-                      ),
+                      // image: NetworkImage(
+                      //   "https://tse4.mm.bing.net/th/id/OIP.lsGmVmOX789951j9Km8RagHaHa?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3",
+                      // ),
+                      image: AssetImage("assets/images/logoGoogle.png"),
                       width: 30,
                       height: 30,
                       fit: BoxFit.contain,
@@ -181,12 +257,42 @@ class LoginUI extends StatelessWidget {
                     SizedBox(width: 20),
                     Text(
                       "Đăng nhập với Google",
-                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      style: TextStyle(fontSize: 14, color: Colors.black),
                     ),
                   ],
                 ),
               ),
             ),
+            SizedBox(height: 10),
+            // Dòng chuyển sang trang Đăng ký nằm dưới cùng
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Chưa có tài khoản? ",
+                  style: TextStyle(fontSize: 14),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterUI(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "Đăng ký ngay",
+                    style: TextStyle(
+                      color: Color(0xFF5496D2),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
           ],
         ),
       ),
