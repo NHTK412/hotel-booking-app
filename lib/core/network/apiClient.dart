@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:hotel_booking_app/config/appConfig.dart';
 
 class ApiClient {
   static final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "http://10.0.2.2:8080/api/",
+      baseUrl: AppConfig.baseUrl,
       headers: {'Content-Type': 'application/json'},
     ),
   );

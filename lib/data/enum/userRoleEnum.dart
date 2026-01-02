@@ -1,12 +1,12 @@
 enum UserRoleEnum {
   roleAdmin('ROLE_ADMIN'),
   roleUser('ROLE_USER'),
-  roleHost('ROLE_HOST');
+  roleHost('ROLE_HOST'),
+  roleCustomer('ROLE_CUSTOMER');
 
   final String apiValue;
 
   const UserRoleEnum(this.apiValue);
-
 
   static UserRoleEnum fromJson(String value) {
     return UserRoleEnum.values.firstWhere(

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/config/appConfig.dart';
+import 'package:hotel_booking_app/core/network/apiClient.dart';
 import 'package:hotel_booking_app/data/repositories/accommodationRepository.dart';
 import 'package:hotel_booking_app/data/service/accommodationService.dart';
 import 'package:hotel_booking_app/screens/detailCart.dart';
+import 'package:hotel_booking_app/screens/findUI.dart';
 import 'package:hotel_booking_app/screens/hotalUi.dart';
 import 'package:hotel_booking_app/screens/searchUi.dart';
 
@@ -26,6 +29,9 @@ class _HomeUiState extends State<HomeUi> {
   late final Future<ApiResponse<List<AccommodationSummary>>> _fetchAll =
       _accommodationRepository.getAllAccommodations();
 
+  late final Future<ApiResponse<List<AccommodationSummary>>> _fetch =
+      _accommodationRepository.getAllAccommodations();
+
   @override
   void initState() {
     // TODO: implement initState
@@ -38,6 +44,7 @@ class _HomeUiState extends State<HomeUi> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
+        // child: Container(
         // padding: const EdgeInsets.all(16.0),
         padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
         child: Column(
@@ -229,7 +236,12 @@ class _HomeUiState extends State<HomeUi> {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => FindUi()),
+                          );
+                        },
                         child: Text(
                           "Xem tất cả",
                           style: TextStyle(color: Colors.blue),
@@ -308,24 +320,54 @@ class _HomeUiState extends State<HomeUi> {
                           ),
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          "Xem tất cả",
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                      ),
+
+                      // TextButton(
+                      //   onPressed: () {},
+                      //   child: Text(
+                      //     "Xem tất cả",
+                      //     style: TextStyle(color: Colors.blue),
+                      //   ),
+                      // ),
                     ],
                   ),
-
+                  const SizedBox(height: 15),
                   // createCart(),
-                  createPopularCard(),
-                  SizedBox(height: 15),
-                  createPopularCard(),
-                  SizedBox(height: 15),
-                  createPopularCard(),
-                  SizedBox(height: 15),
-                  createPopularCard(),
+                  // createPopularCard(),
+                  // SizedBox(height: 15),
+                  // createPopularCard(),
+                  // SizedBox(height: 15),
+                  // createPopularCard(),
+                  // SizedBox(height: 15),
+                  // createPopularCard(),
+
+                  // FETCH KHACH SAN NOI BAT
+                  FutureBuilder(
+                    future: _fetch,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Container(
+                          margin: EdgeInsets.only(top: 20),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return Text("Error: ${snapshot.error}");
+                      }
+                      if (!snapshot.hasData || snapshot.data!.data!.isEmpty) {
+                        return Text("No data");
+                      }
+                      List<AccommodationSummary> data = snapshot.data!.data!;
+
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          return createPopularCard(data[index]);
+                        },
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -591,7 +633,7 @@ class _HomeUiState extends State<HomeUi> {
                     topRight: Radius.circular(20),
                   ),
                   child: Image.network(
-                    "http://10.0.2.2:8080/api/images/${accommodationSummary.image}",
+                    "${AppConfig.baseUrl}images/${accommodationSummary.image}",
                     height: 180,
                     fit: BoxFit.cover,
                     width: double.infinity,
@@ -709,93 +751,120 @@ class _HomeUiState extends State<HomeUi> {
     // );
   }
 
-  Widget createPopularCard() {
-    return Container(
-      // padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        // color: Colors.yellow,
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-      // width: double.infinity,
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(17),
-            child: Image(
-              image: AssetImage("assets/images/anh.avif"),
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
+  Widget createPopularCard(AccommodationSummary accommodationSummary) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HotelUi(
+              accommodationId: accommodationSummary.accommodationId ?? 1,
             ),
           ),
-
-          SizedBox(width: 10),
-          // Column(
-          //   children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    //
-                    // SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "The Aston Vill Hotel",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    // Text(
-                    //   "The Aston Vill Hotel",
-                    //   style: TextStyle(
-                    //     fontSize: 16,
-                    //     fontWeight: FontWeight.bold,
-                    //   ),
-                    // ),
-                    Icon(Icons.star, color: Colors.amber, size: 18),
-                    SizedBox(width: 4),
-                    Text('5.0', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
+        );
+      },
+      child: Container(
+        // width: MediaQuery.of(context).size.width * 0.8,
+        // width: double.infinity,
+        // padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          // color: Colors.yellow,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        // width: double.infinity,
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image(
+                // image: AssetImage("assets/images/anh.avif"),
+                image: NetworkImage(
+                  "${AppConfig.baseUrl}images/${accommodationSummary.image}",
                 ),
-
-                SizedBox(height: 5),
-
-                Text("Alice Springs NT 0870, Australia"),
-
-                SizedBox(height: 15),
-
-                Text.rich(
-                  TextSpan(
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+              ),
+            ),
+            SizedBox(width: 10),
+            // Column(
+            //   children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextSpan(
-                        text: '\$200.7',
-                        style: TextStyle(
-                          color: Colors.blue, // Màu xanh chủ đạo
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                      //
+                      // SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          // "The Aston Vill Hotel",
+                          accommodationSummary.accommodationName ?? "Not found",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
-                      TextSpan(
-                        text: ' /night',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                      // Text(
+                      //   "The Aston Vill Hotel",
+                      //   style: TextStyle(
+                      //     fontSize: 16,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
+                      Icon(Icons.star, color: Colors.amber, size: 18),
+                      SizedBox(width: 4),
+                      Text(
+                        // '5.0',
+                        accommodationSummary.averageRating.toString(),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                ),
-              ],
+
+                  SizedBox(height: 5),
+
+                  // Text("Alice Springs NT 0870, Australia"),
+                  Text(accommodationSummary.address ?? "Not found"),
+                  SizedBox(height: 15),
+
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          // text: '\$200.7',
+                          text:
+                              "${accommodationSummary.getMinPricePerNightToString()} VNĐ",
+                          style: TextStyle(
+                            color: Colors.blue, // Màu xanh chủ đạo
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' /night',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+        // ],
+        // ),
       ),
-      // ],
-      // ),
     );
   }
 }

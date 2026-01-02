@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/config/appConfig.dart';
 import 'package:hotel_booking_app/data/model/accommodation/accommodationDetail.dart';
 import 'package:hotel_booking_app/data/model/apiResponse.dart';
 import 'package:hotel_booking_app/data/model/roomtype/roomTypeSummary.dart';
@@ -39,31 +40,34 @@ class _HotelUiState extends State<HotelUi> {
       // appBar: AppBar(title: const Text('Hotel UI')),
       // body: const Center(child: Text('Hotel UI Content Goes Here')),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: FutureBuilder(
-            future: _fetchById,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+        // child: SingleChildScrollView(
+        //   padding: const EdgeInsets.all(16.0),
+        child: FutureBuilder(
+          future: _fetchById,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              if (snapshot.hasError) {
-                return Text("Error: ${snapshot.error}");
-              }
+            if (snapshot.hasError) {
+              return Text("Error: ${snapshot.error}");
+            }
 
-              // if (!snapshot.hasData || snapshot.data!.data) {
-              //   return const Text("No data");
-              // }
+            // if (!snapshot.hasData || snapshot.data!.data) {
+            //   return const Text("No data");
+            // }
 
-              AccommodationDetail data = snapshot.data!.data!;
+            AccommodationDetail data = snapshot.data!.data!;
 
-              // return Text(data.toString());
-              return _createBody(data);
-            },
-          ),
+            // return Text(data.toString());
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: _createBody(data),
+            );
+          },
         ),
       ),
+      // ),
     );
   }
 
@@ -82,7 +86,7 @@ class _HotelUiState extends State<HotelUi> {
                   image: NetworkImage(
                     // "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1080&auto=format&fit=crop",
                     // "http://10.0.2.2/images/",
-                    "http://10.0.2.2:8080/api/images/${accommodationDetail.image}",
+                    "${AppConfig.baseUrl}images/${accommodationDetail.image}",
                   ),
 
                   width: double.infinity,
@@ -241,7 +245,7 @@ class _HotelUiState extends State<HotelUi> {
               child: Image(
                 // image: AssetImage("assets/images/anh.avif"),
                 image: NetworkImage(
-                  "http://10.0.2.2:8080/api/images/${roomTypeSummary.image}",
+                  "${AppConfig.baseUrl}images/${roomTypeSummary.image}",
                 ),
                 width: 100,
                 height: 100,
