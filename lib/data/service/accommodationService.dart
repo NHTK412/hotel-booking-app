@@ -23,4 +23,13 @@ class AccommodationService {
       rethrow;
     }
   }
+
+  Future<Response> getAllAccommondationByFavorite() async {
+    try {
+      final Response response = await dio.get('accommodations/favorite');
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 } // This class will handle accommodation-related services
