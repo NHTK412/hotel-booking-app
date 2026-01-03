@@ -9,36 +9,33 @@ class BookUi extends StatefulWidget {
 }
 
 class _BookUiState extends State<BookUi> {
-  TextEditingController _dateController = TextEditingController();
-  TextEditingController _anotherController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _anotherController = TextEditingController();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
     String formattedDate =
         "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
-
     _dateController.text = formattedDate;
+
     String anotherFormattedDate =
         "${DateTime.now().day + 1}/${DateTime.now().month}/${DateTime.now().year}";
-
     _anotherController.text = anotherFormattedDate;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA), // Màu nền sáng
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
             children: [
               headerBooking(),
-              const SizedBox(height: 30),
+              const SizedBox(height: 25),
               formBooking(),
-
               const SizedBox(height: 30),
             ],
           ),
@@ -50,50 +47,54 @@ class _BookUiState extends State<BookUi> {
 
   Widget bottomBooking() {
     return Container(
-      // height: 190,
       decoration: BoxDecoration(
         color: Colors.white,
-        // Ở khung ở trên
-        border: Border(top: BorderSide(color: Colors.grey.shade300, width: 1)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                const Text(
+                  "Tổng giá tiền",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 Text(
-                  "Tổng Giá Tiền",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Spacer(), // Đẩy phần giá tiền về bên phải
-                // Công dụng của Widget Spacer là tạo ra một khoảng trống linh hoạt giữa các widget con trong một Row, Column hoặc Flex.
-                Row(
-                  children: [
-                    Text(
-                      "1,200,000 VND",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF64BCE3),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Icon(Icons.info_outline, color: Colors.grey),
-                  ],
+                  "1,200,000 VND",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF64BCE3),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-
+            const SizedBox(height: 5),
             Row(
-              children: [
-                Spacer(),
-                Text("Đã bao gồm thuế", style: TextStyle(color: Colors.grey)),
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: const [
+                Text(
+                  "Đã bao gồm thuế & phí",
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
             buttonBooking(),
           ],
         ),
@@ -110,147 +111,166 @@ class _BookUiState extends State<BookUi> {
         );
       },
       style: ElevatedButton.styleFrom(
-        minimumSize: Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: Color(0xFF64BCE3),
-        foregroundColor: Colors.white,
+        minimumSize: const Size(double.infinity, 55),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        backgroundColor: const Color(0xFF64BCE3),
+        elevation: 0,
       ),
-      child: Text("Tiếp Tục", style: TextStyle(fontSize: 18)),
+      child: const Text(
+        "Xác Nhận Đặt Phòng",
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 
   Widget formBooking() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16.0), // Thêm padding cho đỡ sát lề
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- HÀNG CHỨA 2 NGÀY (Dùng Expanded để chia đôi) ---
+          // Ngày nhận/trả phòng
           Row(
             children: [
-              // Cột 1: Ngày nhận phòng
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Ngày Nhận Phòng",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _dateController,
-                      readOnly: true, // Chỉ đọc, chặn bàn phím
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: "dd/mm/yyyy",
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 15,
-                        ),
-                        suffixIcon: Icon(Icons.calendar_today, size: 20),
-                        isDense: true, // Giúp ô input gọn hơn
-                      ),
-                      onTap: () => _selectDate(context, _dateController),
-                    ),
-                  ],
+                child: _buildInputLabel(
+                  "Ngày Nhận",
+                  _dateController,
+                  Icons.calendar_today,
+                  isDate: true,
                 ),
               ),
-
-              const SizedBox(width: 16), // Khoảng cách giữa 2 ô ngày
-              // Cột 2: Ngày trả phòng
+              const SizedBox(width: 15),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Ngày Trả Phòng",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _anotherController,
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: "dd/mm/yyyy",
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 15,
-                        ),
-                        suffixIcon: Icon(Icons.calendar_today, size: 20),
-                        isDense: true,
-                      ),
-                      onTap: () => _selectDate(context, _anotherController),
-                    ),
-                  ],
+                child: _buildInputLabel(
+                  "Ngày Trả",
+                  _anotherController,
+                  Icons.calendar_today,
+                  isDate: true,
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 20),
 
-          // --- HỌ VÀ TÊN ---
-          Text(
+          _buildTextField(
             "Họ và Tên",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            "Ví dụ: Nguyễn Văn A",
+            Icons.person_outline,
           ),
-          const SizedBox(height: 8),
-          TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: "Ví dụ: Nguyễn Văn A",
-              prefixIcon: Icon(Icons.person), // Thêm icon cho trực quan
-            ),
-          ),
-
           const SizedBox(height: 20),
 
-          // --- SỐ ĐIỆN THOẠI (Quan trọng: Keyboard Type) ---
-          Text(
+          _buildTextField(
             "Số Điện Thoại",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            "Ví dụ: 0912345678",
+            Icons.phone_android_outlined,
+            type: TextInputType.phone,
           ),
-          const SizedBox(height: 8),
-          TextField(
-            keyboardType: TextInputType.phone, // <--- Bàn phím số
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: "Ví dụ: 0912345678",
-              prefixIcon: Icon(Icons.phone),
-            ),
-          ),
-
           const SizedBox(height: 20),
 
-          // --- EMAIL (Quan trọng: Keyboard Type) ---
-          Text(
+          _buildTextField(
             "Email",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            keyboardType: TextInputType.emailAddress, // <--- Bàn phím Email (@)
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: "Ví dụ: example@email.com",
-              prefixIcon: Icon(Icons.email),
-            ),
+            "Ví dụ: example@email.com",
+            Icons.email_outlined,
+            type: TextInputType.emailAddress,
           ),
         ],
       ),
     );
   }
 
-  // --- HÀM RIÊNG ĐỂ XỬ LÝ CHỌN NGÀY (Tránh lặp code) ---
+  // Widget dùng chung cho Label + TextField
+  Widget _buildTextField(
+    String label,
+    String hint,
+    IconData icon, {
+    TextInputType type = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          keyboardType: type,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+            prefixIcon: Icon(icon, color: const Color(0xFF64BCE3), size: 20),
+            filled: true,
+            fillColor: const Color(0xFFF1F5F9),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 15),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Widget dùng riêng cho Date Picker
+  Widget _buildInputLabel(
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    bool isDate = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          readOnly: true,
+          onTap: isDate ? () => _selectDate(context, controller) : null,
+          decoration: InputDecoration(
+            hintText: "dd/mm/yyyy",
+            prefixIcon: Icon(icon, color: const Color(0xFF64BCE3), size: 18),
+            filled: true,
+            fillColor: const Color(0xFFF1F5F9),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            isDense: true,
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _selectDate(
     BuildContext context,
     TextEditingController controller,
@@ -258,7 +278,7 @@ class _BookUiState extends State<BookUi> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(), // Không cho chọn ngày quá khứ
       lastDate: DateTime(2100),
     );
     if (picked != null) {
@@ -269,32 +289,26 @@ class _BookUiState extends State<BookUi> {
   }
 
   Widget headerBooking() {
-    return Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.arrow_back),
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
           ),
-
-          Text(
-            "Thông Tin Đặt Phòng",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          child: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           ),
-
-          const SizedBox(width: 48),
-        ],
-      ),
+        ),
+        const Text(
+          "Thông Tin Đặt Phòng",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(width: 45),
+      ],
     );
   }
 }

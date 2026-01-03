@@ -1,502 +1,477 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/config/appConfig.dart';
+import 'package:hotel_booking_app/data/enum/amenityEnum.dart';
+import 'package:hotel_booking_app/data/model/apiResponse.dart';
+import 'package:hotel_booking_app/data/model/roomtype/roomTypeDetail.dart';
+import 'package:hotel_booking_app/data/repositories/RoomTypeRepository.dart';
+import 'package:hotel_booking_app/data/service/roomTypeService.dart';
 import 'package:hotel_booking_app/screens/bookUI.dart';
 import 'package:readmore/readmore.dart';
 
 class DetailCart extends StatefulWidget {
-  const DetailCart({Key? key}) : super(key: key);
+  final int roomTypeId;
+
+  const DetailCart({Key? key, required this.roomTypeId}) : super(key: key);
 
   @override
   _DetailCartState createState() => _DetailCartState();
 }
 
 class _DetailCartState extends State<DetailCart> {
-  // Criteria
-  // final List<Map<Icon, String>> criteria = [
-  //   {Icon(Icons.wifi, color: Colors.white, size: 20): "Free Wifi"},
-  //   {
-  //     Icon(Icons.breakfast_dining, color: Colors.white, size: 20):
-  //         "Free Breakfast",
-  //   },
-  //   {Icon(Icons.star, color: Colors.white, size: 20): "5.0"},
-  // ];
+  String? _error;
+  bool _isLoading = false;
+  RoomTypeDetail? _roomTypeDetail;
 
-  bool isReadMore = false;
+  final RoomTypeRepository _roomTypeRepository = RoomTypeRepository(
+    RoomTypeService(),
+  );
 
-  final List<Map<String, dynamic>> criteria = [
-    {"icon": Icons.wifi, "text": "Free Wifi"},
-    {"icon": Icons.breakfast_dining, "text": "Free Breakfast"},
-    {"icon": Icons.star, "text": "5.0"},
-    // {"icon": Icons.pool, "text": "Pool"}, // Thêm ví dụ để thấy xuống dòng
-    // {"icon": Icons.ac_unit, "text": "A/C"},
-    // {"icon": Icons.local_parking, "text": "Parking"},
-    // {"icon": Icons.fitness_center, "text": "Gym"},
-    // Thêm ví dụ để thấy xuống dòng
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      setState(() => _isLoading = true);
+      final ApiResponse<RoomTypeDetail> result = await _roomTypeRepository
+          .getRoomTypeById(widget.roomTypeId);
+      _roomTypeDetail = result.data;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(title: Text('Detail Cart')),
-      // body: Center(child: Text('This is the Detail Cart screen')),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          // padding: EdgeInsets.all(16),
-          padding: EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-          child: Column(
-            children: [
-              header(),
+        child: (_isLoading)
+            ? const Center(child: CircularProgressIndicator())
+            : (_error != null)
+            ? Center(child: Text("Lỗi: $_error"))
+            : _createBody(_roomTypeDetail),
+      ),
+      bottomNavigationBar: _roomTypeDetail != null
+          ? Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: const BookingButton(),
+            )
+          : null,
+    );
+  }
 
-              const SizedBox(height: 20),
+  Widget _createBody(RoomTypeDetail? roomTypeDetail) {
+    if (roomTypeDetail == null) return const SizedBox();
 
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image(
-                  image: AssetImage("assets/images/anh.avif"),
-                  fit: BoxFit.cover,
-                  height: 250,
-                  width: double.infinity,
-                ),
-              ),
-
-              const SizedBox(height: 25),
-
-              category(),
-
-              const SizedBox(height: 25),
-
-              titleDetail(),
-
-              const SizedBox(height: 25),
-
-              description(),
-
-              const SizedBox(height: 25),
-
-              preview(),
-
-              const SizedBox(height: 30),
-              button(),
-            ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const DetailHeader(),
+          const SizedBox(height: 20),
+          _createImageBanner(roomTypeDetail.image ?? ""),
+          const SizedBox(height: 25),
+          _createDetailTitle(
+            title: roomTypeDetail.name ?? "N/A",
+            location: roomTypeDetail.localtion ?? "Unknown",
+            price: roomTypeDetail.getMinPricePerNightToString(),
+            star: roomTypeDetail.star ?? 0,
           ),
+          const SizedBox(height: 20),
+          const Divider(),
+          const SizedBox(height: 10),
+          const Text(
+            "Tiện ích",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          _createCategory(
+            roomTypeDetail.amenities ?? [],
+            roomTypeDetail.star ?? 0,
+          ),
+          const SizedBox(height: 25),
+          const DetailDescription(),
+          const SizedBox(height: 25),
+          const DetailPreview(),
+          const SizedBox(height: 25),
+
+          // --- PHẦN NHẬN XÉT (REVIEWS) ---
+          const Text(
+            "Nhận xét từ khách hàng",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 15),
+          _buildReviewItem(
+            name: "Nguyễn Văn A",
+            avatarUrl: "https://ui-avatars.com/api/?name=A&background=random",
+            rating: 5,
+            comment:
+                "Phòng rất sạch sẽ và đầy đủ tiện nghi. Nhân viên phục vụ nhiệt tình, vị trí thuận lợi cho việc di chuyển.",
+            date: "12/10/2025",
+          ),
+          _buildReviewItem(
+            name: "Trần Thị B",
+            avatarUrl: "https://ui-avatars.com/api/?name=B&background=random",
+            rating: 4,
+            comment: "View rất đẹp, đồ ăn sáng ngon. Sẽ quay lại lần sau.",
+            date: "05/10/2025",
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _createDetailTitle({
+    required String title,
+    required String location,
+    required String price,
+    required int star,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: List.generate(5, (index) {
+                      return Icon(
+                        index < star ? Icons.star : Icons.star_border,
+                        color: Colors.orange,
+                        size: 18,
+                      );
+                    }),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  "$price VNĐ",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF64BCE3),
+                  ),
+                ),
+                const Text(
+                  "mỗi đêm",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Icon(
+              Icons.location_on_rounded,
+              color: Colors.redAccent,
+              size: 18,
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                location,
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _createImageBanner(String imageUrl) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Image.network(
+        "${AppConfig.baseUrl}images/$imageUrl",
+        fit: BoxFit.cover,
+        height: 250,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: 250,
+          color: Colors.grey[300],
+          child: const Icon(Icons.broken_image, size: 50),
         ),
       ),
     );
   }
 
-  Widget button() {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const BookUi()),
-        );
-      },
-      child: Text("Đặt Phòng"),
-      style: ElevatedButton.styleFrom(
-        minimumSize: Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        backgroundColor: Color(0xFF64BCE3),
-        foregroundColor: Colors.white,
-      ),
+  Widget _createCategory(List<AmenityEnum> amenities, int star) {
+    return Wrap(
+      spacing: 10.0,
+      runSpacing: 10.0,
+      children: amenities
+          .map(
+            (item) =>
+                _buildAmenityChip(item.iconData, item.amenityName, Colors.blue),
+          )
+          .toList(),
     );
   }
 
-  Widget preview() {
+  Widget _buildAmenityChip(IconData icon, String label, Color iconColor) {
     return Container(
-      width: double.infinity,
-
-      // decoration: BoxDecoration(color: Colors.redAccent),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        // mainAxisAlignment: MainAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.blue.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.blue.withOpacity(0.1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(icon, color: iconColor, size: 16),
+          const SizedBox(width: 6),
           Text(
-            "Preview",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           ),
-          const SizedBox(height: 10),
-
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image(
-                    image: AssetImage("assets/images/anh.avif"),
-                    width: 120,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-
-                const SizedBox(width: 15),
-
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image(
-                    image: AssetImage("assets/images/anh.avif"),
-                    width: 120,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-
-                const SizedBox(width: 15),
-
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image(
-                    image: AssetImage("assets/images/anh.avif"),
-                    width: 120,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Add review items here
         ],
       ),
     );
   }
 
-  Widget description() {
+  // Widget hiển thị từng dòng nhận xét
+  Widget _buildReviewItem({
+    required String name,
+    required String avatarUrl,
+    required int rating,
+    required String comment,
+    required String date,
+  }) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(15),
+      ),
       child: Column(
-        // Căn lề trái
         crossAxisAlignment: CrossAxisAlignment.start,
-
-        children: [
-          Text(
-            "Description",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-
-          ReadMoreText(
-            "The Aston Vill Hotel is a luxurious and modern hotel located in the heart of the city. It offers comfortable rooms, top-notch amenities, and exceptional service to ensure a memorable stay for all guests. Whether you're traveling for business or leisure, The Aston Vill Hotel provides the perfect blend of convenience and elegance. ",
-
-            textAlign: TextAlign.justify,
-
-            trimMode: TrimMode.Line,
-
-            // dùng để cắt theo dòng
-            trimLines: 3,
-
-            // số dòng hiển thị ban đầu
-            colorClickableText: Colors.blue,
-
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-              height: 1.5, // Khoảng cách dòng cho dễ đọc
-            ),
-
-            // Style cho chữ Read More/Show Less (đậm hơn, màu khác)
-            // moreStyle: TextStyle(
-            //   fontSize: 14,
-            //   fontWeight: FontWeight.bold,
-            //   color: Colors.blueAccent,
-            // ),
-
-            //  moreStyle: TextStyle(
-            //   fontSize: 14,
-            //   fontWeight: FontWeight.bold,
-            //   color: Colors.blueAccent,
-            // ),
-          ),
-
-          // Text.rich(
-          //   TextSpan(
-          //     style: TextStyle(color: Colors.black, fontSize: 16),
-          //     // text:
-          //     //     "The Aston Vill Hotel is a luxurious and modern hotel located in the heart of the city. It offers comfortable rooms, top-notch amenities, and exceptional service to ensure a memorable stay for all guests. Whether you're traveling for business or leisure, The Aston Vill Hotel provides the perfect blend of convenience and elegance.",
-          //     children: [
-          //       TextSpan(
-          //         text:
-          //             "The Aston Vill Hotel is a luxurious and modern hotel located in the heart of the city. It offers comfortable rooms, top-notch amenities, and exceptional service to ensure a memorable stay for all guests. Whether you're traveling for business or leisure, The Aston Vill Hotel provides the perfect blend of convenience and elegance.",
-          //       ),
-          //       TextSpan(
-          //         text: isReadMore ? " Read Less" : " Read More",
-          //         style: TextStyle(
-          //           color: Colors.blue,
-          //           fontWeight: FontWeight.bold,
-          //         ),
-          //         recognizer: TapGestureRecognizer()
-          //           ..onTap = () {
-          //             setState(() {
-          //               isReadMore = !isReadMore;
-          //             });
-          //           },
-          //       ),
-          //     ],
-          //   ),
-          //   maxLines: isReadMore ? null : 3,
-          //   overflow: TextOverflow.ellipsis,
-          // ),
-        ],
-      ),
-    );
-  }
-
-  // Widget category() {
-  //   return Container(
-  // width: double.infinity,
-  // decoration: BoxDecoration(color: Colors.redAccent),
-  // child: SingleChildScrollView(
-  // padding: EdgeInsets.zero,
-  // scrollDirection: Axis.horizontal,
-  // child: Row(
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //       children: [
-  //         Container(
-  //           decoration: BoxDecoration(
-  //             borderRadius: BorderRadius.all(Radius.circular(10)),
-  //             color: Colors.amber,
-  //           ),
-  //           padding: EdgeInsets.all(10),
-  //           child: Row(
-  //             children: [
-  //               Icon(Icons.wifi, color: Colors.white, size: 20),
-  //               const SizedBox(width: 5),
-  //               Text("Free Wifi", style: TextStyle(color: Colors.white)),
-  //             ],
-  //           ),
-  //         ),
-
-  //         const SizedBox(width: 15),
-
-  //         Container(
-  //           decoration: BoxDecoration(
-  //             borderRadius: BorderRadius.all(Radius.circular(10)),
-  //             color: Colors.amber,
-  //           ),
-  //           padding: EdgeInsets.all(10),
-  //           child: Row(
-  //             children: [
-  //               Icon(Icons.breakfast_dining, color: Colors.white, size: 20),
-  //               const SizedBox(width: 5),
-  //               Text("Free Breakfast", style: TextStyle(color: Colors.white)),
-  //             ],
-  //           ),
-  //         ),
-
-  //         const SizedBox(width: 15),
-
-  //         Container(
-  //           decoration: BoxDecoration(
-  //             borderRadius: BorderRadius.all(Radius.circular(10)),
-  //             color: Colors.amber,
-  //           ),
-  //           padding: EdgeInsets.all(10),
-  //           child: Row(
-  //             children: [
-  //               Icon(Icons.star, color: Colors.white, size: 20),
-  //               const SizedBox(width: 5),
-  //               Text("5.0", style: TextStyle(color: Colors.white)),
-  //             ],
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //     // ),
-  //   );
-  // }
-
-  // Widget category() {
-  //   return Container(
-  //     // padding: EdgeInsets.all(10), // Padding tổng thể
-  //     child: GridView.builder(
-  //       shrinkWrap: true, // Chỉ chiếm diện tích vừa đủ
-  //       physics: NeverScrollableScrollPhysics(), // Tắt cuộn riêng của Grid
-  //       itemCount: criteria.length,
-
-  //       // CẤU HÌNH LƯỚI: 3 CỘT
-  //       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-  //         crossAxisCount: 3, // Cố định 3 phần tử một hàng
-  //         mainAxisSpacing: 12, // Khoảng cách dọc giữa các hàng
-  //         crossAxisSpacing: 12, // Khoảng cách ngang giữa các ô
-  //         childAspectRatio: 2.8, // Tỉ lệ: càng lớn thì ô càng dẹt (thấp)
-  //       ),
-
-  //       itemBuilder: (context, index) {
-  //         final item = criteria[index];
-
-  //         return Container(
-  //           decoration: BoxDecoration(
-  //             // Màu nền tím nhạt giống hình mẫu
-  //             // color: Color(0xFFF8F5FE),
-  //             color: Colors.white,
-  //             borderRadius: BorderRadius.all(Radius.circular(12)),
-  //           ),
-  //           padding: EdgeInsets.symmetric(horizontal: 4),
-  //           child: Row(
-  //             mainAxisAlignment: MainAxisAlignment.center, // Căn giữa
-  //             children: [
-  //               Icon(item['icon'], color: item['iconColor'], size: 20),
-  //               const SizedBox(width: 6), // Khoảng cách giữa icon và chữ
-  //               // Dùng Flexible để chữ tự co lại nếu dài quá ô lưới
-  //               Flexible(
-  //                 child: Text(
-  //                   item['text'],
-  //                   style: TextStyle(
-  //                     color: Colors.black87,
-  //                     fontWeight: FontWeight.w500, // Chữ hơi đậm xíu
-  //                     fontSize: 13,
-  //                   ),
-  //                   overflow: TextOverflow.ellipsis, // Dài quá thì hiện dấu ...
-  //                   maxLines: 1,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
-  Widget category() {
-    return Container(
-      width: double.infinity, // Để Wrap chiếm hết chiều ngang có thể
-      // padding: EdgeInsets.all(10),
-      child: Wrap(
-        // alignment: WrapAlignment.center, // Căn giữa toàn bộ các cục
-        alignment: WrapAlignment.spaceBetween,
-
-        spacing: 12.0, // Khoảng cách ngang giữa các nút
-        runSpacing: 12.0, // Khoảng cách dọc giữa các dòng
-        children: criteria.map((item) {
-          return Container(
-            decoration: BoxDecoration(
-              // color: Color(0xFFF8F5FE),
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ), // Padding bên trong nút
-            child: Row(
-              mainAxisSize:
-                  MainAxisSize.min, // Quan trọng: Co lại vừa đủ nội dung
-              children: [
-                Icon(item['icon'], color: item['iconColor'], size: 20),
-                SizedBox(width: 6),
-                Text(
-                  item['text'],
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget titleDetail() {
-    return Container(
-      child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  "The Aston Vill Hotel",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+              CircleAvatar(
+                backgroundImage: NetworkImage(avatarUrl),
+                radius: 20,
               ),
-
-              Text.rich(
-                TextSpan(
-                  text: "\$250 ",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent,
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextSpan(
-                      text: "/night",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.grey,
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
+                    ),
+                    Text(
+                      date,
+                      style: const TextStyle(color: Colors.grey, fontSize: 11),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          Row(
-            children: [
-              Icon(Icons.location_on, color: Colors.blue, size: 20),
-              const SizedBox(width: 5),
-              Text(
-                "Alice Springs NT 0870, Australia",
-                style: TextStyle(color: Colors.grey),
+              Row(
+                children: List.generate(5, (index) {
+                  return Icon(
+                    Icons.star,
+                    size: 14,
+                    color: index < rating ? Colors.orange : Colors.grey[300],
+                  );
+                }),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            comment,
+            style: TextStyle(
+              color: Colors.grey[800],
+              fontSize: 13,
+              height: 1.4,
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget header() {
+// --- CÁC COMPONENT HỖ TRỢ ---
+
+class DetailHeader extends StatelessWidget {
+  const DetailHeader({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildIconBox(
+          context,
+          Icons.arrow_back_ios_new,
+          () => Navigator.pop(context),
+        ),
+        const Text(
+          "Chi Tiết Phòng",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        // _buildIconBox(context, Icons.favorite_border, () {}),
+        const SizedBox(width: 48),
+      ],
+    );
+  }
+
+  Widget _buildIconBox(
+    BuildContext context,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: IconButton(
-              // padding: EdgeInsets.all(5),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.arrow_back),
-              // icon: Icon(Icons.home),
-            ),
-          ),
-
-          Text(
-            "Chi Tiết Phòng",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-
-          // SizedBox(width: 48),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: IconButton(
-              // padding: EdgeInsets.all(5),
-              onPressed: () {},
-              icon: Icon(Icons.menu),
-              // icon: Icon(Icons.home),
-            ),
-          ),
+      width: 45,
+      height: 45,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: IconButton(
+        onPressed: onTap,
+        icon: Icon(icon, size: 18, color: Colors.black),
+      ),
+    );
+  }
+}
+
+class DetailDescription extends StatelessWidget {
+  const DetailDescription({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text(
+          "Mô tả",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 10),
+        ReadMoreText(
+          "Khách sạn cung cấp không gian sang trọng với thiết kế hiện đại, đầy đủ tiện nghi cao cấp. Tọa lạc tại vị trí đắc địa, giúp quý khách dễ dàng di chuyển đến các địa điểm tham quan nổi tiếng. Dịch vụ tận tâm, chuyên nghiệp chắc chắn sẽ làm hài lòng quý khách trong suốt kỳ nghỉ.",
+          textAlign: TextAlign.justify,
+          trimMode: TrimMode.Line,
+          trimLines: 3,
+          colorClickableText: Colors.blue,
+          trimCollapsedText: ' Xem thêm',
+          trimExpandedText: ' Rút gọn',
+          style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
+        ),
+      ],
+    );
+  }
+}
+
+class DetailPreview extends StatelessWidget {
+  const DetailPreview({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Hình ảnh xem trước",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 90,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 4,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  "https://picsum.photos/200/300?random=$index",
+                  width: 130,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class BookingButton extends StatelessWidget {
+  const BookingButton({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const BookUi()),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: const Color(0xFF64BCE3),
+          elevation: 0,
+        ),
+        child: const Text(
+          "Đặt Phòng Ngay",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }

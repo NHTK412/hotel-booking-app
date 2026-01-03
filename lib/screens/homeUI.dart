@@ -55,7 +55,10 @@ class _HomeUiState extends State<HomeUi> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Vị Trí Hiện Tại"),
+                      Text(
+                        "Vị Trí Hiện Tại",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       SizedBox(height: 10),
                       Row(
                         children: [
@@ -430,7 +433,7 @@ class _HomeUiState extends State<HomeUi> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DetailCart()),
+          MaterialPageRoute(builder: (context) => DetailCart(roomTypeId: 1)),
         );
       },
       child: Container(

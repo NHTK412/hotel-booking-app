@@ -51,6 +51,26 @@ class AccommodationRepository {
     }
   }
 
+  Future<ApiResponse<AccommodationDetail>> updateFavoriteByAccommondationId(
+    int accommodationId,
+    bool isFavorite,
+  ) async {
+    try {
+      final Response response = await accommodationService
+          .updateFavoriteByAccommondationId(accommodationId, isFavorite);
+
+      final ApiResponse<AccommodationDetail> apiResponse = ApiResponse.fromJson(
+        response.statusCode,
+        response.data,
+        (data) => AccommodationDetail.fromJson(data),
+      );
+
+      return apiResponse;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<ApiResponse<List<AccommodationSummary>>>
   getAllAccommodationsByFavorite() async {
     try {

@@ -23,6 +23,7 @@ class AccommodationDetail {
   final List<RoomTypeSummary>? roomTypes;
   final double? starRating;
   final String? image;
+  final bool? isFavorite;
 
   AccommodationDetail({
     required this.accommodationId,
@@ -36,6 +37,7 @@ class AccommodationDetail {
     required this.roomTypes,
     required this.starRating,
     required this.image,
+    required this.isFavorite,
   });
 
   factory AccommodationDetail.fromJson(Map<String, dynamic> json) {
@@ -56,6 +58,7 @@ class AccommodationDetail {
       roomTypes: roomTypes,
       starRating: json['starRating'] as double?,
       image: json['image'] as String?,
+      isFavorite: json['isFavorite'] as bool?,
     );
   }
 

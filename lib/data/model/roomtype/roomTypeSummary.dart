@@ -23,7 +23,7 @@ class RoomTypeSummary {
 
   factory RoomTypeSummary.fromJson(Map<String, dynamic> json) {
     return RoomTypeSummary(
-      roomTypeId: json['roomTypeId'] as int?,
+      roomTypeId: json['roomtypeId'] as int?,
       name: json['name'] as String?,
       star: json['star'] as int?,
       price: json['price'] as double?,

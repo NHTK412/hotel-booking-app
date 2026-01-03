@@ -21,438 +21,336 @@ class _HotelUiState extends State<HotelUi> {
   final AccommodationRepository accommodationRepository =
       AccommodationRepository(AccommodationService());
 
-  late final Future<ApiResponse<AccommodationDetail>> _fetchById;
-
-  bool isFavorite = false;
+  AccommodationDetail? _accommodationDetail;
+  bool _isLoading = true;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _fetchById = accommodationRepository.getAccommodationById(
-      widget.accommodationId,
-    );
+    _fetchAccommodationDetail();
+  }
+
+  Future<void> _fetchAccommodationDetail() async {
+    try {
+      ApiResponse<AccommodationDetail> response = await accommodationRepository
+          .getAccommodationById(widget.accommodationId);
+      setState(() {
+        _accommodationDetail = response.data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(title: const Text('Hotel UI')),
-      // body: const Center(child: Text('Hotel UI Content Goes Here')),
+      backgroundColor: const Color(0xFFF8F9FA), // Màu nền sáng nhẹ
       body: SafeArea(
-        // child: SingleChildScrollView(
-        //   padding: const EdgeInsets.all(16.0),
-        child: FutureBuilder(
-          future: _fetchById,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError) {
-              return Text("Error: ${snapshot.error}");
-            }
-
-            // if (!snapshot.hasData || snapshot.data!.data) {
-            //   return const Text("No data");
-            // }
-
-            AccommodationDetail data = snapshot.data!.data!;
-
-            // return Text(data.toString());
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: _createBody(data),
-            );
-          },
-        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _accommodationDetail == null
+            ? const Center(child: Text("Không tìm thấy dữ liệu"))
+            : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                child: _createBody(_accommodationDetail!),
+              ),
       ),
-      // ),
     );
   }
 
-  Widget _createBody(AccommodationDetail accommodationDetail) {
+  Widget _createBody(AccommodationDetail detail) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        header(),
-        SizedBox(height: 20),
+        _buildHeader(),
+        const SizedBox(height: 20),
 
-        (accommodationDetail.image == null)
-            ? const Center(child: CircularProgressIndicator())
-            : ClipRRect(
-                borderRadius: BorderRadius.circular(15.0),
-                child: Image(
-                  image: NetworkImage(
-                    // "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1080&auto=format&fit=crop",
-                    // "http://10.0.2.2/images/",
-                    "${AppConfig.baseUrl}images/${accommodationDetail.image}",
-                  ),
+        // Banner Image
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20.0),
+          child: Image.network(
+            "${AppConfig.baseUrl}images/${detail.image}",
+            width: double.infinity,
+            height: 250,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              height: 250,
+              color: Colors.grey[300],
+              child: const Icon(Icons.hotel),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
 
-                  width: double.infinity,
-                  height: 250,
-                  fit: BoxFit.cover,
-                ),
-              ),
-
-        SizedBox(height: 20),
-
+        // Title & Star Rating
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Text(
-                // "The Aston Vill Hotel",
-                accommodationDetail.accommodationName!,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                detail.accommodationName ?? "",
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
-            Container(
-              // padding: EdgeInsets.all(10.0),
-              padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-              decoration: BoxDecoration(
-                // color: Colors.yellow.withOpacity(0.5),
-                color: Colors.amber.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Row(
-                children: [
-                  // Icon(Icons.star, size: 16, color: Colors.yellow),
-                  Icon(Icons.star, size: 16, color: Colors.amber),
-
-                  SizedBox(width: 10),
-                  Text(
-                    // "5.0",
-                    accommodationDetail.starRating!.toString(),
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
+            const SizedBox(width: 10),
+            _buildInfoChip(
+              Icons.star,
+              detail.starRating.toString(),
+              Colors.amber,
             ),
           ],
         ),
+        const SizedBox(height: 12),
 
-        SizedBox(height: 10),
-        Container(
-          child: Row(
-            children: [
-              Container(
-                // padding: EdgeInsets.all(10.0),
-                padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.hotel, size: 16, color: Colors.blueAccent),
-                    SizedBox(width: 10),
-                    Text(
-                      // "Khách sạn",
-                      accommodationDetail.type!,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 10),
-              Container(
-                // padding: EdgeInsets.all(10.0),
-                padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-                decoration: BoxDecoration(
-                  // color: Colors.yellow.withOpacity(0.5),
-                  // color: Colors.amber.withOpacity(0.1),
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Row(
-                  children: [
-                    // Icon(Icons.star, size: 16, color: Colors.yellow),
-                    Icon(Icons.location_on, size: 16, color: Colors.green),
-
-                    SizedBox(width: 10),
-                    // Text("", style: TextStyle(fontSize: 16)),
-                    Text("4.5 km", style: TextStyle(fontSize: 16)),
-                  ],
-                ),
-              ),
-              Spacer(),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    isFavorite = !isFavorite;
-                  });
-                },
-                icon: Icon(
-                  Icons.favorite,
-                  color: isFavorite ? Colors.red : Colors.grey,
-                ),
-              ),
-            ],
-          ),
+        // Location & Type Info
+        Row(
+          children: [
+            _buildInfoChip(Icons.hotel, detail.type ?? "", Colors.blueAccent),
+            const SizedBox(width: 8),
+            _buildInfoChip(Icons.location_on, "4.5 km", Colors.green),
+            const Spacer(),
+            _buildFavoriteButton(detail),
+          ],
         ),
-        SizedBox(height: 20),
-        description(accommodationDetail.description!),
-        SizedBox(height: 20),
-        Container(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Room Options",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+        const SizedBox(height: 20),
 
-              ...accommodationDetail.roomTypes!.map((roomType) {
-                return createPopularCard(roomType);
+        // Description
+        _buildDescription(detail.description ?? ""),
+        const SizedBox(height: 25),
+
+        // Room Options List
+        const Text(
+          "Lựa chọn phòng",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 15),
+
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: detail.roomTypes?.length ?? 0,
+          separatorBuilder: (_, __) => const SizedBox(height: 15),
+          itemBuilder: (context, index) =>
+              _buildRoomCard(detail.roomTypes![index], () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetailCart(
+                      roomTypeId: detail.roomTypes![index].roomTypeId!,
+                    ),
+                  ),
+                );
               }),
+          // itemBuilder: (context, index) =>
+          //     Text("${detail.roomTypes![index].roomTypeId}"),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
 
-              // SizedBox(height: 10),
-              // createPopularCard(),
-              // SizedBox(height: 10),
-              // createPopularCard(),
-              // SizedBox(height: 10),
-              // createPopularCard(),
-            ],
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildIconNav(Icons.arrow_back_ios_new, () => Navigator.pop(context)),
+        const Text(
+          "Chi Tiết Khách Sạn",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(width: 45), // Cân bằng với nút Back
+      ],
+    );
+  }
+
+  Widget _buildIconNav(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+          ],
+        ),
+        child: Icon(icon, size: 20),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFavoriteButton(AccommodationDetail detail) {
+    bool isFav = detail.isFavorite ?? false;
+    return IconButton(
+      onPressed: () async {
+        ApiResponse<AccommodationDetail> result = await accommodationRepository
+            .updateFavoriteByAccommondationId(detail.accommodationId!, !isFav);
+        setState(() => _accommodationDetail = result.data);
+      },
+      icon: Icon(
+        isFav ? Icons.favorite : Icons.favorite_border,
+        color: isFav ? Colors.red : Colors.grey,
+        size: 28,
+      ),
+    );
+  }
+
+  Widget _buildDescription(String text) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Mô tả",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        ReadMoreText(
+          text,
+          textAlign: TextAlign.justify,
+          trimLines: 3,
+          colorClickableText: Colors.blue,
+          trimMode: TrimMode.Line,
+          style: TextStyle(fontSize: 14, color: Colors.grey[700], height: 1.6),
         ),
       ],
     );
-    // ,
   }
 
-  Widget createPopularCard(RoomTypeSummary roomTypeSummary) {
+  Widget _buildRoomCard(RoomTypeSummary room, Function() onTap) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DetailCart()),
-        );
-      },
+      // onTap: () => Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (_) => DetailCart(roomTypeId: room.roomTypeId ?? 1),
+      //   ),
+
+      // ),
+      onTap: onTap,
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 10),
-        // padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
-          // color: Colors.yellow,
           color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        // width: double.infinity,
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(17),
-              child: Image(
-                // image: AssetImage("assets/images/anh.avif"),
-                image: NetworkImage(
-                  "${AppConfig.baseUrl}images/${roomTypeSummary.image}",
-                ),
-                width: 100,
-                height: 100,
-                // width: 50,
-                // height: 50,
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(16),
+              ),
+              child: Image.network(
+                "${AppConfig.baseUrl}images/${room.image}",
+                width: 110,
+                height: 110,
                 fit: BoxFit.cover,
               ),
             ),
-            SizedBox(width: 10),
-            // Column(
-            //   children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      //
-                      // SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          // "The Aston Vill Hotel",
-                          roomTypeSummary.name!,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      // Text(
-                      //   "The Aston Vill Hotel",
-                      //   style: TextStyle(
-                      //     fontSize: 16,
-                      //     fontWeight: FontWeight.bold,
-                      //   ),
-                      // ),
-                      Icon(Icons.star, color: Colors.amber, size: 18),
-                      SizedBox(width: 4),
-                      Text(
-                        // '5.0',
-                        roomTypeSummary.star!.toString(),
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 5),
-
-                  Text("Alice Springs NT 0870, Australia"),
-
-                  SizedBox(height: 15),
-
-                  Text.rich(
-                    TextSpan(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        TextSpan(
-                          // text: '\$200.7',
-                          text: '${roomTypeSummary.getPriceToString()} VNĐ',
-                          style: TextStyle(
-                            color: Colors.blue, // Màu xanh chủ đạo
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                        Expanded(
+                          child: Text(
+                            room.name ?? "",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        TextSpan(
-                          text: ' /night',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 14,
-                          ),
-                        ),
+                        _buildStar(room.star ?? 0),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    const Text(
+                      "Standard King Bed",
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 12),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${room.getPriceToString()} VNĐ',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const TextSpan(
+                            text: ' /đêm',
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
         ),
-        // ],
-        // ),
       ),
     );
   }
 
-  Widget description(String accommodationDescription) {
-    return Container(
-      child: Column(
-        // Căn lề trái
-        crossAxisAlignment: CrossAxisAlignment.start,
-
-        children: [
-          Text(
-            "Description",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-
-          ReadMoreText(
-            // "The Aston Vill Hotel is a luxurious and modern hotel located in the heart of the city. It offers comfortable rooms, top-notch amenities, and exceptional service to ensure a memorable stay for all guests. Whether you're traveling for business or leisure, The Aston Vill Hotel provides the perfect blend of convenience and elegance. ",
-            accommodationDescription,
-            textAlign: TextAlign.justify,
-
-            trimMode: TrimMode.Line,
-
-            // dùng để cắt theo dòng
-            trimLines: 3,
-
-            // số dòng hiển thị ban đầu
-            colorClickableText: Colors.blue,
-
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-              height: 1.5, // Khoảng cách dòng cho dễ đọc
-            ),
-
-            // Style cho chữ Read More/Show Less (đậm hơn, màu khác)
-            // moreStyle: TextStyle(
-            //   fontSize: 14,
-            //   fontWeight: FontWeight.bold,
-            //   color: Colors.blueAccent,
-            // ),
-
-            //  moreStyle: TextStyle(
-            //   fontSize: 14,
-            //   fontWeight: FontWeight.bold,
-            //   color: Colors.blueAccent,
-            // ),
-          ),
-
-          // Text.rich(
-          //   TextSpan(
-          //     style: TextStyle(color: Colors.black, fontSize: 16),
-          //     // text:
-          //     //     "The Aston Vill Hotel is a luxurious and modern hotel located in the heart of the city. It offers comfortable rooms, top-notch amenities, and exceptional service to ensure a memorable stay for all guests. Whether you're traveling for business or leisure, The Aston Vill Hotel provides the perfect blend of convenience and elegance.",
-          //     children: [
-          //       TextSpan(
-          //         text:
-          //             "The Aston Vill Hotel is a luxurious and modern hotel located in the heart of the city. It offers comfortable rooms, top-notch amenities, and exceptional service to ensure a memorable stay for all guests. Whether you're traveling for business or leisure, The Aston Vill Hotel provides the perfect blend of convenience and elegance.",
-          //       ),
-          //       TextSpan(
-          //         text: isReadMore ? " Read Less" : " Read More",
-          //         style: TextStyle(
-          //           color: Colors.blue,
-          //           fontWeight: FontWeight.bold,
-          //         ),
-          //         recognizer: TapGestureRecognizer()
-          //           ..onTap = () {
-          //             setState(() {
-          //               isReadMore = !isReadMore;
-          //             });
-          //           },
-          //       ),
-          //     ],
-          //   ),
-          //   maxLines: isReadMore ? null : 3,
-          //   overflow: TextOverflow.ellipsis,
-          // ),
-        ],
-      ),
-    );
-  }
-
-  Widget header() {
-    return Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: IconButton(
-              // padding: EdgeInsets.all(5),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.arrow_back),
-              // icon: Icon(Icons.home),
-            ),
-          ),
-
-          Text(
-            "Chi Tiết Khách Sạn",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-
-          SizedBox(width: 48),
-          // Container(
-          //   decoration: BoxDecoration(
-          //     color: Colors.white,
-          //     borderRadius: BorderRadius.all(Radius.circular(10)),
-          //     border: Border.all(color: Colors.grey.shade300),
-          //   ),
-          //   child: IconButton(
-          //     // padding: EdgeInsets.all(5),
-          //     onPressed: () {},
-          //     icon: Icon(Icons.menu),
-          //     // icon: Icon(Icons.home),
-          //   ),
-          // ),
-        ],
-      ),
+  Widget _buildStar(int star) {
+    return Row(
+      children: [
+        const Icon(Icons.star, color: Colors.amber, size: 14),
+        const SizedBox(width: 2),
+        Text(
+          star.toString(),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+      ],
     );
   }
 }
