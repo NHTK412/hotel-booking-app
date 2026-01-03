@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/screens/calendarUI.dart';
 import 'package:hotel_booking_app/screens/homeUI.dart';
+import 'package:hotel_booking_app/screens/likeUi.dart';
 import 'package:hotel_booking_app/screens/profileUi.dart';
 
 class MenuUi extends StatefulWidget {
@@ -20,7 +21,8 @@ class _MenuUiState extends State<MenuUi> {
     const HomeUi(),
     // const Center(child: Text("Calendar Page")),
     const CalendarUI(),
-    const Center(child: Text("Gifts Page")),
+    // const Center(child: Text("Gifts Page")),
+    const LikeUi(),
     const ProfileUI(),
   ];
 

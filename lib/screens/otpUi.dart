@@ -325,7 +325,9 @@ class _OtpScreenState extends State<OtpScreen> {
             if (value.length == 1 && !last)
               {FocusScope.of(context).nextFocus()}
             else if (value.isEmpty && !first)
-              {FocusScope.of(context).previousFocus()},
+              {FocusScope.of(context).previousFocus()}
+            else if (last && value.length == 1)
+              {FocusScope.of(context).unfocus()},
 
             // if (value.isEmpty && value.length == 0)
 
