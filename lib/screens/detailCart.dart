@@ -58,8 +58,14 @@ class _DetailCartState extends State<DetailCart> {
       ),
       bottomNavigationBar: _roomTypeDetail != null
           ? Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: const BookingButton(),
+              padding: EdgeInsets.all(20.0),
+              child: BookingButton(
+                roomTypeId: widget.roomTypeId,
+                price: _roomTypeDetail!.price!,
+                // accommodationName: _roomTypeDetail!.accommodationName!,
+                accommodationName: "Demo Accommodation",
+                roomTypeName: _roomTypeDetail!.name!,
+              ),
             )
           : null,
     );
@@ -443,7 +449,19 @@ class DetailPreview extends StatelessWidget {
 }
 
 class BookingButton extends StatelessWidget {
-  const BookingButton({Key? key}) : super(key: key);
+  final int roomTypeId;
+  final double price;
+
+  final String accommodationName;
+  final String roomTypeName;
+
+  const BookingButton({
+    Key? key,
+    required this.roomTypeId,
+    required this.price,
+    required this.accommodationName,
+    required this.roomTypeName,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -454,7 +472,14 @@ class BookingButton extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const BookUi()),
+            MaterialPageRoute(
+              builder: (context) => BookUi(
+                roomTypeId: roomTypeId,
+                price: price,
+                accommodationName: accommodationName,
+                roomTypeName: roomTypeName,
+              ),
+            ),
           );
         },
         style: ElevatedButton.styleFrom(

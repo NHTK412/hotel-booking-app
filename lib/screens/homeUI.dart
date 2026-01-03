@@ -433,7 +433,7 @@ class _HomeUiState extends State<HomeUi> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DetailCart(roomTypeId: 1)),
+          MaterialPageRoute(builder: (context) => DetailCart(roomTypeId: 1,)),
         );
       },
       child: Container(

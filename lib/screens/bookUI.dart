@@ -1,43 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/screens/paymentUI.dart';
+import 'package:intl/intl.dart';
 
 class BookUi extends StatefulWidget {
-  const BookUi({super.key});
+  final int roomTypeId;
+  final String accommodationName;
+  final String roomTypeName;
+  final double price; // Giá mỗi đêm
+
+  const BookUi({
+    super.key,
+    required this.roomTypeId,
+    required this.price,
+    required this.accommodationName,
+    required this.roomTypeName,
+  });
 
   @override
   State<StatefulWidget> createState() => _BookUiState();
 }
 
 class _BookUiState extends State<BookUi> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _anotherController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+
+  late DateTime _checkInDate;
+  late DateTime _checkOutDate;
+
+  // Cố định giờ nhận/trả phòng (Sau này có thể thay bằng dữ liệu từ API)
+  final String hardcodedCheckInTime = "14:00";
+  final String hardcodedCheckOutTime = "12:00";
 
   @override
   void initState() {
     super.initState();
-    String formattedDate =
-        "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
-    _dateController.text = formattedDate;
-
-    String anotherFormattedDate =
-        "${DateTime.now().day + 1}/${DateTime.now().month}/${DateTime.now().year}";
-    _anotherController.text = anotherFormattedDate;
+    _checkInDate = DateTime.now();
+    _checkOutDate = DateTime.now().add(const Duration(days: 1));
+    _updateDateFields();
   }
+
+  void _updateDateFields() {
+    _dateController.text = DateFormat('dd/MM/yyyy').format(_checkInDate);
+    _anotherController.text = DateFormat('dd/MM/yyyy').format(_checkOutDate);
+  }
+
+  int get _nights => _checkOutDate.difference(_checkInDate).inDays;
+
+  double get _totalAmount => widget.price * (_nights > 0 ? _nights : 1);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Màu nền sáng
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            children: [
-              headerBooking(),
-              const SizedBox(height: 25),
-              formBooking(),
-              const SizedBox(height: 30),
-            ],
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                headerBooking(),
+                const SizedBox(height: 25),
+                formBooking(),
+              ],
+            ),
           ),
         ),
       ),
@@ -47,18 +77,11 @@ class _BookUiState extends State<BookUi> {
 
   Widget bottomBooking() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
       padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -66,62 +89,60 @@ class _BookUiState extends State<BookUi> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Tổng giá tiền",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Text(
+                  "Tổng ($_nights đêm)",
+                  style: const TextStyle(color: Colors.grey),
                 ),
                 Text(
-                  "1,200,000 VND",
-                  style: TextStyle(
+                  "${NumberFormat("#,###").format(_totalAmount)} VND",
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF64BCE3),
+                    color: Color(0xFF64BCE3),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: const [
-                Text(
-                  "Đã bao gồm thuế & phí",
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
             ),
             const SizedBox(height: 15),
-            buttonBooking(),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PaymentUI(
+                        roomTypeId: widget.roomTypeId,
+                        customerName: _nameController.text,
+                        customerPhone: _phoneController.text,
+                        customerEmail: _emailController.text,
+                        checkInDate: _checkInDate,
+                        checkOutDate: _checkOutDate,
+                        originPrice: _totalAmount,
+                        accommodationName: widget.accommodationName,
+                        roomTypeName: widget.roomTypeName,
+                        checkInTime: hardcodedCheckInTime,
+                        checkOutTime: hardcodedCheckOutTime,
+                      ),
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 55),
+                backgroundColor: const Color(0xFF64BCE3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              child: const Text(
+                "Xác Nhận Đặt Phòng",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget buttonBooking() {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const PaymentUI()),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 55),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        backgroundColor: const Color(0xFF64BCE3),
-        elevation: 0,
-      ),
-      child: const Text(
-        "Xác Nhận Đặt Phòng",
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
         ),
       ),
     );
@@ -133,60 +154,41 @@ class _BookUiState extends State<BookUi> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Ngày nhận/trả phòng
           Row(
             children: [
               Expanded(
-                child: _buildInputLabel(
-                  "Ngày Nhận",
-                  _dateController,
-                  Icons.calendar_today,
-                  isDate: true,
-                ),
+                child: _buildDateInput("Ngày Nhận", _dateController, true),
               ),
               const SizedBox(width: 15),
               Expanded(
-                child: _buildInputLabel(
-                  "Ngày Trả",
-                  _anotherController,
-                  Icons.calendar_today,
-                  isDate: true,
-                ),
+                child: _buildDateInput("Ngày Trả", _anotherController, false),
               ),
             ],
           ),
           const SizedBox(height: 20),
-
           _buildTextField(
             "Họ và Tên",
-            "Ví dụ: Nguyễn Văn A",
+            "Nguyễn Văn A",
             Icons.person_outline,
+            _nameController,
           ),
           const SizedBox(height: 20),
-
           _buildTextField(
             "Số Điện Thoại",
-            "Ví dụ: 0912345678",
+            "0912345678",
             Icons.phone_android_outlined,
+            _phoneController,
             type: TextInputType.phone,
           ),
           const SizedBox(height: 20),
-
           _buildTextField(
             "Email",
-            "Ví dụ: example@email.com",
+            "example@email.com",
             Icons.email_outlined,
+            _emailController,
             type: TextInputType.emailAddress,
           ),
         ],
@@ -194,11 +196,68 @@ class _BookUiState extends State<BookUi> {
     );
   }
 
-  // Widget dùng chung cho Label + TextField
+  Widget _buildDateInput(
+    String label,
+    TextEditingController controller,
+    bool isCheckIn,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          readOnly: true,
+          onTap: () async {
+            DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: isCheckIn ? _checkInDate : _checkOutDate,
+              firstDate: isCheckIn
+                  ? DateTime.now()
+                  : _checkInDate.add(const Duration(days: 1)),
+              lastDate: DateTime(2100),
+            );
+            if (picked != null) {
+              setState(() {
+                if (isCheckIn) {
+                  _checkInDate = picked;
+                  if (!_checkOutDate.isAfter(_checkInDate)) {
+                    _checkOutDate = _checkInDate.add(const Duration(days: 1));
+                  }
+                } else {
+                  _checkOutDate = picked;
+                }
+                _updateDateFields();
+              });
+            }
+          },
+          decoration: InputDecoration(
+            prefixIcon: const Icon(
+              Icons.calendar_today,
+              color: Color(0xFF64BCE3),
+              size: 18,
+            ),
+            filled: true,
+            fillColor: const Color(0xFFF1F5F9),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTextField(
     String label,
     String hint,
-    IconData icon, {
+    IconData icon,
+    TextEditingController controller, {
     TextInputType type = TextInputType.text,
   }) {
     return Column(
@@ -206,18 +265,15 @@ class _BookUiState extends State<BookUi> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-            color: Colors.black87,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
+          controller: controller,
           keyboardType: type,
+          validator: (v) => v!.isEmpty ? "Vui lòng nhập thông tin" : null,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
             prefixIcon: Icon(icon, color: const Color(0xFF64BCE3), size: 20),
             filled: true,
             fillColor: const Color(0xFFF1F5F9),
@@ -225,90 +281,24 @@ class _BookUiState extends State<BookUi> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 15),
           ),
         ),
       ],
     );
   }
 
-  // Widget dùng riêng cho Date Picker
-  Widget _buildInputLabel(
-    String label,
-    TextEditingController controller,
-    IconData icon, {
-    bool isDate = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          readOnly: true,
-          onTap: isDate ? () => _selectDate(context, controller) : null,
-          decoration: InputDecoration(
-            hintText: "dd/mm/yyyy",
-            prefixIcon: Icon(icon, color: const Color(0xFF64BCE3), size: 18),
-            filled: true,
-            fillColor: const Color(0xFFF1F5F9),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            isDense: true,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _selectDate(
-    BuildContext context,
-    TextEditingController controller,
-  ) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(), // Không cho chọn ngày quá khứ
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        controller.text = "${picked.day}/${picked.month}/${picked.year}";
-      });
-    }
-  }
-
-  Widget headerBooking() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-          ),
-        ),
-        const Text(
-          "Thông Tin Đặt Phòng",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(width: 45),
-      ],
-    );
-  }
+  Widget headerBooking() => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      IconButton(
+        onPressed: () => Navigator.pop(context),
+        icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+      ),
+      const Text(
+        "Thông Tin Đặt Phòng",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(width: 45),
+    ],
+  );
 }
