@@ -93,6 +93,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  # flutter pub run flutter_launcher_icons:main
 flutter_icons:
   android: true
   ios: true
@@ -100,6 +102,7 @@ flutter_icons:
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/images/logo.png"
 
+# flutter pub run flutter_native_splash:create
 flutter_native_splash:
   color: "#ffffff"
   image: assets/images/logo.png
