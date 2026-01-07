@@ -9,7 +9,7 @@
 // private List<RoomTypeSummaryDTO> roomTypes;
 // private Double starRating;
 
-import 'package:hotel_booking_app/data/model/roomtype/roomTypeSummary.dart';
+import 'package:hotel_booking_app/data/model/roomtype/room_type_summary.dart';
 
 class AccommodationDetail {
   final int? accommodationId;

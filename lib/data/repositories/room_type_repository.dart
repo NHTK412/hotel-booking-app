@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/service/roomTypeService.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/service/room_type_service.dart';
 
-import '../model/roomtype/roomTypeDetail.dart';
+import '../model/roomtype/room_type_detail.dart';
 
 class RoomTypeRepository {
   final RoomTypeService _roomTypeService;

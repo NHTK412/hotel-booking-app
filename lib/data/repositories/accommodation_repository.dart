@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:hotel_booking_app/data/model/accommodation/accommodationDetail.dart';
-import 'package:hotel_booking_app/data/model/accommodation/accommodationSummary.dart';
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/service/accommodationService.dart';
+import 'package:hotel_booking_app/data/model/accommodation/accommodation_detail.dart';
+import 'package:hotel_booking_app/data/model/accommodation/accommodation_summary.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/service/accommodation_service.dart';
 
 class AccommodationRepository {
   final AccommodationService accommodationService;

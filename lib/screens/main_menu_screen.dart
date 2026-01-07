@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/screens/calendarUI.dart';
-import 'package:hotel_booking_app/screens/homeUI.dart';
-import 'package:hotel_booking_app/screens/likeUi.dart';
-import 'package:hotel_booking_app/screens/profileUi.dart';
+import 'package:hotel_booking_app/screens/calendar_screen.dart';
+import 'package:hotel_booking_app/screens/home_screen.dart';
+import 'package:hotel_booking_app/screens/favorite_hotel_screen.dart';
+import 'package:hotel_booking_app/screens/profile_screen.dart';
 
 class MenuUi extends StatefulWidget {
   const MenuUi({super.key});

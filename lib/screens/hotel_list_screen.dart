@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/config/appConfig.dart';
-import 'package:hotel_booking_app/data/model/accommodation/accommodationDetail.dart';
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/model/roomtype/roomTypeSummary.dart';
-import 'package:hotel_booking_app/data/repositories/accommodationRepository.dart';
-import 'package:hotel_booking_app/data/service/accommodationService.dart';
-import 'package:hotel_booking_app/screens/detailCart.dart';
+import 'package:hotel_booking_app/config/app_config.dart';
+import 'package:hotel_booking_app/data/model/accommodation/accommodation_detail.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/roomtype/room_type_summary.dart';
+import 'package:hotel_booking_app/data/repositories/accommodation_repository.dart';
+import 'package:hotel_booking_app/data/service/accommodation_service.dart';
+import 'package:hotel_booking_app/screens/room_detail_screen.dart';
 import 'package:readmore/readmore.dart';
 
 class HotelUi extends StatefulWidget {

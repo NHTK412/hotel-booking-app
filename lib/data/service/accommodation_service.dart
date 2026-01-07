@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:hotel_booking_app/core/network/apiClient.dart';
+import 'package:hotel_booking_app/core/network/app_client.dart';
 
 class AccommodationService {
   final Dio dio = ApiClient.dio;

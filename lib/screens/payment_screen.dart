@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/model/booking/bookingDetail.dart';
-import 'package:hotel_booking_app/data/model/booking/bookingRequest.dart';
-import 'package:hotel_booking_app/data/repositories/bookingRepostiory.dart';
-import 'package:hotel_booking_app/data/service/bookingService.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
+import 'package:hotel_booking_app/data/model/booking/booking_request.dart';
+import 'package:hotel_booking_app/data/repositories/booking_repostiory.dart';
+import 'package:hotel_booking_app/data/service/booking_service.dart';
 import 'package:intl/intl.dart';
 
 class PaymentUI extends StatefulWidget {

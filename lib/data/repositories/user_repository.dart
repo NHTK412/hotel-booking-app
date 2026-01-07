@@ -1,6 +1,6 @@
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/model/user/userResponse.dart';
-import 'package:hotel_booking_app/data/service/userService.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/user/user_response.dart';
+import 'package:hotel_booking_app/data/service/user_service.dart';
 
 class UserRepository {
   final UserService userService;

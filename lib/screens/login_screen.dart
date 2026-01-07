@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/model/auth/authLogin.dart';
-import 'package:hotel_booking_app/data/model/auth/authResponse.dart';
-import 'package:hotel_booking_app/data/repositories/authRepository.dart';
-import 'package:hotel_booking_app/data/service/authService.dart';
-import 'package:hotel_booking_app/screens/otpUi.dart';
-import 'package:hotel_booking_app/screens/registerUI.dart';
-import 'package:hotel_booking_app/widgets/vectorWaveClipper.dart';
+import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/auth/auth_login.dart';
+import 'package:hotel_booking_app/data/model/auth/auth_response.dart';
+import 'package:hotel_booking_app/data/repositories/auth_repository.dart';
+import 'package:hotel_booking_app/data/service/auth_service.dart';
+import 'package:hotel_booking_app/screens/otp_verification_screen.dart';
+import 'package:hotel_booking_app/screens/register_screen.dart';
 import 'dart:math'; // Import thư viện toán học để dùng hàm min, max
 
 class LoginUI extends StatefulWidget {

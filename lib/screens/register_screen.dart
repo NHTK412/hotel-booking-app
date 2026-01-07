@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/widgets/vectorWaveClipper.dart';
+import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
 
 class RegisterUI extends StatelessWidget {
   const RegisterUI({super.key});

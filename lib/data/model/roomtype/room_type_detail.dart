@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import '../../enum/amenityEnum.dart';
+import '../../enum/amenity_enum.dart';
 
 class RoomTypeDetail {
   final int? roomTypeId;

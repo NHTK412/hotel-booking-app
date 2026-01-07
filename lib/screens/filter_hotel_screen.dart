@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/screens/detailCart.dart';
+import 'package:hotel_booking_app/screens/room_detail_screen.dart';
 
 class FindUi extends StatefulWidget {
   const FindUi({super.key});

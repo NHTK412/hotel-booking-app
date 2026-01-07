@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/config/appConfig.dart';
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/model/user/userResponse.dart';
-import 'package:hotel_booking_app/data/repositories/userRepository.dart';
-import 'package:hotel_booking_app/data/service/userService.dart';
+import 'package:hotel_booking_app/config/app_config.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/user/user_response.dart';
+import 'package:hotel_booking_app/data/repositories/user_repository.dart';
+import 'package:hotel_booking_app/data/service/user_service.dart';
 
 class ProfileUI extends StatefulWidget {
   const ProfileUI({super.key});

@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/screens/menuUI.dart';
-import 'package:hotel_booking_app/screens/profileUi.dart';
-import 'package:hotel_booking_app/widgets/vectorWaveClipper.dart';
+import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
+import 'package:hotel_booking_app/screens/main_menu_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});

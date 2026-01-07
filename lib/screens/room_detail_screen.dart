@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/config/appConfig.dart';
-import 'package:hotel_booking_app/data/enum/amenityEnum.dart';
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/model/roomtype/roomTypeDetail.dart';
-import 'package:hotel_booking_app/data/repositories/RoomTypeRepository.dart';
-import 'package:hotel_booking_app/data/service/roomTypeService.dart';
-import 'package:hotel_booking_app/screens/bookUI.dart';
+import 'package:hotel_booking_app/config/app_config.dart';
+import 'package:hotel_booking_app/data/enum/amenity_enum.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/roomtype/room_type_detail.dart';
+import 'package:hotel_booking_app/data/repositories/room_type_repository.dart';
+import 'package:hotel_booking_app/data/service/room_type_service.dart';
+import 'package:hotel_booking_app/screens/booking_screen.dart';
 import 'package:readmore/readmore.dart';
 
 class DetailCart extends StatefulWidget {

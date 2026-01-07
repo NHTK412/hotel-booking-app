@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/config/appConfig.dart';
-import 'package:hotel_booking_app/core/network/apiClient.dart';
-import 'package:hotel_booking_app/data/repositories/accommodationRepository.dart';
-import 'package:hotel_booking_app/data/service/accommodationService.dart';
-import 'package:hotel_booking_app/screens/detailCart.dart';
-import 'package:hotel_booking_app/screens/findUI.dart';
-import 'package:hotel_booking_app/screens/hotalUi.dart';
-import 'package:hotel_booking_app/screens/searchUi.dart';
+import 'package:hotel_booking_app/config/app_config.dart';
+import 'package:hotel_booking_app/data/repositories/accommodation_repository.dart';
+import 'package:hotel_booking_app/data/service/accommodation_service.dart';
+import 'package:hotel_booking_app/screens/room_detail_screen.dart';
+import 'package:hotel_booking_app/screens/filter_hotel_screen.dart';
+import 'package:hotel_booking_app/screens/hotel_list_screen.dart';
+import 'package:hotel_booking_app/screens/search_hotel_screen.dart';
 
-import '../data/model/accommodation/accommodationSummary.dart';
-import '../data/model/apiResponse.dart';
+import '../data/model/accommodation/accommodation_summary.dart';
+import '../data/model/api_response.dart';
 
 class HomeUi extends StatefulWidget {
   const HomeUi({super.key});

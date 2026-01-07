@@ -9,7 +9,7 @@
 //     "originalPrice": 100000,
 //     "status": "PENDING"
 
-import 'package:hotel_booking_app/data/enum/bookingStatusEnum.dart';
+import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
 
 class BookingDetail {
   final int bookingId;

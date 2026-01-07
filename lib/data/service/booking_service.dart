@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:hotel_booking_app/core/network/apiClient.dart';
-import 'package:hotel_booking_app/data/model/booking/bookingRequest.dart';
+import 'package:hotel_booking_app/core/network/app_client.dart';
+import 'package:hotel_booking_app/data/model/booking/booking_request.dart';
 
 class BookingService {
   final Dio dio = ApiClient.dio;

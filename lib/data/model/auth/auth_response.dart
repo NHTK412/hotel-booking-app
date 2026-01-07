@@ -1,4 +1,4 @@
-import 'package:hotel_booking_app/data/enum/userRoleEnum.dart';
+import 'package:hotel_booking_app/data/enum/user_role_enum.dart';
 
 class AuthResponse {
   final String? email;

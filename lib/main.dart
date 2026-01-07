@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // 1. Thêm thư viện này để chỉnh Status Bar
-import 'package:hotel_booking_app/screens/loginUi.dart';
-import 'package:hotel_booking_app/screens/menuUI.dart';
+import 'package:hotel_booking_app/screens/login_screen.dart';
+import 'package:hotel_booking_app/screens/main_menu_screen.dart';
 
 void main() {
   // 2. Thêm đoạn cấu hình này trước khi chạy app

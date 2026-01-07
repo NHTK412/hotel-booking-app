@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:hotel_booking_app/data/model/apiResponse.dart';
-import 'package:hotel_booking_app/data/model/auth/authLogin.dart';
-import 'package:hotel_booking_app/data/model/auth/authResponse.dart';
-import 'package:hotel_booking_app/data/service/authService.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/auth/auth_login.dart';
+import 'package:hotel_booking_app/data/model/auth/auth_response.dart';
+import 'package:hotel_booking_app/data/service/auth_service.dart';
 
 class AuthRepository {
   final AuthService apiService;

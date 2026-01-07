@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/screens/paymentUI.dart';
+import 'package:hotel_booking_app/screens/payment_screen.dart';
 import 'package:intl/intl.dart';
 
 class BookUi extends StatefulWidget {
