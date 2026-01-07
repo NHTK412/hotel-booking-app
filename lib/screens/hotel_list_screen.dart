@@ -145,7 +145,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DetailCart(
+                    builder: (context) => RoomDetailScreen(
                       roomTypeId: detail.roomTypes![index].roomTypeId!,
                     ),
                   ),
