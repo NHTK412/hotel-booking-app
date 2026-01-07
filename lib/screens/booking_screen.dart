@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/screens/payment_screen.dart';
 import 'package:intl/intl.dart';
 
-class BookUi extends StatefulWidget {
+class BookingScreen extends StatefulWidget {
   final int roomTypeId;
   final String accommodationName;
   final String roomTypeName;
   final double price; // Giá mỗi đêm
 
-  const BookUi({
+  const BookingScreen({
     super.key,
     required this.roomTypeId,
     required this.price,
@@ -17,10 +17,10 @@ class BookUi extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => _BookUiState();
+  State<StatefulWidget> createState() => _BookingScreenState();
 }
 
-class _BookUiState extends State<BookUi> {
+class _BookingScreenState extends State<BookingScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _anotherController = TextEditingController();
@@ -110,7 +110,7 @@ class _BookUiState extends State<BookUi> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PaymentUI(
+                      builder: (context) => PaymentScreen(
                         roomTypeId: widget.roomTypeId,
                         customerName: _nameController.text,
                         customerPhone: _phoneController.text,

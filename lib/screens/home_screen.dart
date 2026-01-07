@@ -10,16 +10,16 @@ import 'package:hotel_booking_app/screens/search_hotel_screen.dart';
 import '../data/model/accommodation/accommodation_summary.dart';
 import '../data/model/api_response.dart';
 
-class HomeUi extends StatefulWidget {
-  const HomeUi({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    return _HomeUiState();
+    return _HomeScreenState();
   }
 }
 
-class _HomeUiState extends State<HomeUi> {
+class _HomeScreenState extends State<HomeScreen> {
   final AccommodationRepository _accommodationRepository =
       AccommodationRepository(AccommodationService());
 
@@ -85,7 +85,7 @@ class _HomeUiState extends State<HomeUi> {
                         context,
                         MaterialPageRoute(
                           builder: (context) {
-                            return SearchUi();
+                            return SearchHotelScreen();
                           },
                         ),
                       );
@@ -241,7 +241,7 @@ class _HomeUiState extends State<HomeUi> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => FindUi()),
+                            MaterialPageRoute(builder: (context) => FilterHotelScreen()),
                           );
                         },
                         child: Text(
@@ -432,7 +432,7 @@ class _HomeUiState extends State<HomeUi> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DetailCart(roomTypeId: 1,)),
+          MaterialPageRoute(builder: (context) => RoomDetailScreen(roomTypeId: 1,)),
         );
       },
       child: Container(
@@ -595,7 +595,7 @@ class _HomeUiState extends State<HomeUi> {
           context,
 
           MaterialPageRoute(
-            builder: (context) => HotelUi(
+            builder: (context) => HotelListScreen(
               accommodationId: accommodationSummary.accommodationId ?? 1,
             ),
           ),
@@ -759,7 +759,7 @@ class _HomeUiState extends State<HomeUi> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => HotelUi(
+            builder: (context) => HotelListScreen(
               accommodationId: accommodationSummary.accommodationId ?? 1,
             ),
           ),

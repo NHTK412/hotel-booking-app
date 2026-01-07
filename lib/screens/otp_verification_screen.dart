@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
 import 'package:hotel_booking_app/screens/main_menu_screen.dart';
 
-class OtpScreen extends StatefulWidget {
-  const OtpScreen({super.key});
+class OtpVerificationScreen extends StatefulWidget {
+  const OtpVerificationScreen({super.key});
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
+class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Timer? _timer;
 
   late int second;
@@ -279,7 +279,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const MenuUi(),
+                            builder: (context) => const MainMenuScreen(),
                           ),
                         );
                       },

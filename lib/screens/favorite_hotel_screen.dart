@@ -7,14 +7,14 @@ import 'package:hotel_booking_app/screens/hotel_list_screen.dart';
 
 import '../data/model/api_response.dart';
 
-class LikeUi extends StatefulWidget {
-  const LikeUi({super.key});
+class FavoriteHotelScreen extends StatefulWidget {
+  const FavoriteHotelScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _LikeUiState();
+  State<StatefulWidget> createState() => _FavoriteHotelScreenState();
 }
 
-class _LikeUiState extends State<LikeUi> {
+class _FavoriteHotelScreenState extends State<FavoriteHotelScreen> {
   List<AccommodationSummary> accommodations = [];
   bool isLoading = false;
   String? error;
@@ -67,7 +67,7 @@ class _LikeUiState extends State<LikeUi> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HotelUi(
+                      builder: (context) => HotelListScreen(
                         accommodationId:
                             accommodations[index].accommodationId ?? 0,
                       ),

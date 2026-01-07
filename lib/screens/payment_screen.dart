@@ -6,7 +6,7 @@ import 'package:hotel_booking_app/data/repositories/booking_repostiory.dart';
 import 'package:hotel_booking_app/data/service/booking_service.dart';
 import 'package:intl/intl.dart';
 
-class PaymentUI extends StatefulWidget {
+class PaymentScreen extends StatefulWidget {
   final int roomTypeId;
   final String customerName;
   final String customerPhone;
@@ -19,7 +19,7 @@ class PaymentUI extends StatefulWidget {
   final String checkInTime;
   final String checkOutTime;
 
-  const PaymentUI({
+  const PaymentScreen({
     super.key,
     required this.roomTypeId,
     required this.customerName,
@@ -36,11 +36,11 @@ class PaymentUI extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _PaymentUIState();
+    return _PaymentScreenState();
   }
 }
 
-class _PaymentUIState extends State<PaymentUI> {
+class _PaymentScreenState extends State<PaymentScreen> {
   String? _error;
   bool _isLoading = false;
   BookingDetail? _bookingDetail;

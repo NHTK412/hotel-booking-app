@@ -8,16 +8,16 @@ import 'package:hotel_booking_app/data/service/accommodation_service.dart';
 import 'package:hotel_booking_app/screens/room_detail_screen.dart';
 import 'package:readmore/readmore.dart';
 
-class HotelUi extends StatefulWidget {
+class HotelListScreen extends StatefulWidget {
   final int accommodationId;
 
-  const HotelUi({super.key, required this.accommodationId});
+  const HotelListScreen({super.key, required this.accommodationId});
 
   @override
-  _HotelUiState createState() => _HotelUiState();
+  _HotelListScreenState createState() => _HotelListScreenState();
 }
 
-class _HotelUiState extends State<HotelUi> {
+class _HotelListScreenState extends State<HotelListScreen> {
   final AccommodationRepository accommodationRepository =
       AccommodationRepository(AccommodationService());
 

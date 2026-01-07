@@ -4,26 +4,26 @@ import 'package:hotel_booking_app/screens/home_screen.dart';
 import 'package:hotel_booking_app/screens/favorite_hotel_screen.dart';
 import 'package:hotel_booking_app/screens/profile_screen.dart';
 
-class MenuUi extends StatefulWidget {
-  const MenuUi({super.key});
+class MainMenuScreen extends StatefulWidget {
+  const MainMenuScreen({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    return _MenuUiState();
+    return _MainMenuScreenState();
   }
 }
 
 // ______________________________________________________
 
-class _MenuUiState extends State<MenuUi> {
+class _MainMenuScreenState extends State<MainMenuScreen> {
   final List<Widget> page = [
     // const Center(child: Text("Home Page")),
-    const HomeUi(),
+    const HomeScreen(),
     // const Center(child: Text("Calendar Page")),
-    const CalendarUI(),
+    const CalendarScreen(),
     // const Center(child: Text("Gifts Page")),
-    const LikeUi(),
-    const ProfileUI(),
+    const FavoriteHotelScreen(),
+    const ProfileScreen(),
   ];
 
   int selectedIndex = 0;

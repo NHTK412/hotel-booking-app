@@ -8,16 +8,16 @@ import 'package:hotel_booking_app/data/service/room_type_service.dart';
 import 'package:hotel_booking_app/screens/booking_screen.dart';
 import 'package:readmore/readmore.dart';
 
-class DetailCart extends StatefulWidget {
+class RoomDetailScreen extends StatefulWidget {
   final int roomTypeId;
 
-  const DetailCart({Key? key, required this.roomTypeId}) : super(key: key);
+  const RoomDetailScreen({Key? key, required this.roomTypeId}) : super(key: key);
 
   @override
-  _DetailCartState createState() => _DetailCartState();
+  _RoomDetailScreenState createState() => _RoomDetailScreenState();
 }
 
-class _DetailCartState extends State<DetailCart> {
+class _RoomDetailScreenState extends State<RoomDetailScreen> {
   String? _error;
   bool _isLoading = false;
   RoomTypeDetail? _roomTypeDetail;
@@ -473,7 +473,7 @@ class BookingButton extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => BookUi(
+              builder: (context) => BookingScreen(
                 roomTypeId: roomTypeId,
                 price: price,
                 accommodationName: accommodationName,

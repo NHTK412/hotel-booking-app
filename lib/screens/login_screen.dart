@@ -10,16 +10,16 @@ import 'package:hotel_booking_app/screens/otp_verification_screen.dart';
 import 'package:hotel_booking_app/screens/register_screen.dart';
 import 'dart:math'; // Import thư viện toán học để dùng hàm min, max
 
-class LoginUI extends StatefulWidget {
-  const LoginUI({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    return _LoginUIState();
+    return _LoginScreenState();
   }
 }
 
-class _LoginUIState extends State<LoginUI> {
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _pass = TextEditingController();
 

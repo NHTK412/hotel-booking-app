@@ -5,14 +5,14 @@ import 'package:hotel_booking_app/data/model/user/user_response.dart';
 import 'package:hotel_booking_app/data/repositories/user_repository.dart';
 import 'package:hotel_booking_app/data/service/user_service.dart';
 
-class ProfileUI extends StatefulWidget {
-  const ProfileUI({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _ProfileUIState();
+  State<StatefulWidget> createState() => _ProfileScreenState();
 }
 
-class _ProfileUIState extends State<ProfileUI> {
+class _ProfileScreenState extends State<ProfileScreen> {
   final UserRepository userRepository = UserRepository(UserService());
   late Future<ApiResponse<UserResponse>> _fetchUser;
 

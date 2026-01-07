@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/screens/room_detail_screen.dart';
 
-class FindUi extends StatefulWidget {
-  const FindUi({super.key});
+class FilterHotelScreen extends StatefulWidget {
+  const FilterHotelScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _FindUiState();
+  State<StatefulWidget> createState() => _FilterHotelScreenState();
 }
 
-class _FindUiState extends State<FindUi> {
+class _FilterHotelScreenState extends State<FilterHotelScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,7 +186,7 @@ class _FindUiState extends State<FindUi> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const DetailCart(roomTypeId: 1),
+            builder: (context) => const RoomDetailScreen(roomTypeId: 1),
           ),
         );
       },
