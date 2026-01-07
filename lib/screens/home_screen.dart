@@ -241,7 +241,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => FilterHotelScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => FilterHotelScreen(),
+                            ),
                           );
                         },
                         child: Text(
@@ -432,7 +434,9 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => RoomDetailScreen(roomTypeId: 1,)),
+          MaterialPageRoute(
+            builder: (context) => RoomDetailScreen(roomTypeId: 1),
+          ),
         );
       },
       child: Container(
@@ -560,7 +564,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         TextSpan(
-                          text: ' /night',
+                          text: ' / Mỗi Đêm',
                           style: TextStyle(
                             color: Colors.grey[400],
                             fontSize: 14,
@@ -730,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           TextSpan(
-                            text: ' /night',
+                            text: ' / Mỗi Đêm',
                             style: TextStyle(
                               color: Colors.grey[400],
                               fontSize: 14,
@@ -850,7 +854,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         TextSpan(
-                          text: ' /night',
+                          text: ' / Mỗi Đêm',
                           style: TextStyle(
                             color: Colors.grey[400],
                             fontSize: 14,

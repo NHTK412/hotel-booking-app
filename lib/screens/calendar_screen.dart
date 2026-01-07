@@ -1,252 +1,317 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
+import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
+// import 'package:hotel_booking_app/models/booking_detail.dart';
+import 'package:hotel_booking_app/screens/calendar_detail_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _CalendarScreenState();
+  State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  final CalendarFormat _calendarFormat = CalendarFormat.month;
+  // Khởi tạo giá trị mặc định để tránh lỗi Null
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
+  // Giả lập danh sách dữ liệu từ Backend
+  final List<BookingDetail> _allBookings = [
+    BookingDetail(
+      bookingId: 3,
+      checkInDate: DateTime.parse("2026-01-08"),
+      checkOutDate: DateTime.parse("2026-01-10"),
+      customerEmail: "khang@gmail.com",
+      customerName: "Nguyễn Hữu Tuấn Khang",
+      customerPhone: "058205002155",
+      discountedPrice: 0.1,
+      finalPrice: 100000,
+      originalPrice: 100000,
+      status: BookingStatusEnum.peding,
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Đảm bảo _selectedDay có giá trị ngay từ đầu
+    _selectedDay = _focusedDay;
+  }
+
+  List<BookingDetail> _getFilteredBookings(DateTime day) {
+    return _allBookings
+        .where((booking) => isSameDay(booking.checkInDate, day))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+    // Sử dụng toán tử ?? để tránh null khi lọc
+    final selectedBookings = _getFilteredBookings(
+      _selectedDay ?? DateTime.now(),
+    );
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA), // Màu nền sáng chuyên nghiệp
+      body: SafeArea(
         child: Column(
           children: [
-            Center(
-              child: Text(
-                "Lịch Trình",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-
+            const SizedBox(height: 10),
+            _buildTopBar(),
             const SizedBox(height: 20),
-
-            TableCalendar(
-              // --- CẤU HÌNH CƠ BẢN (LOGIC) ---
-              firstDay: DateTime.utc(2020, 10, 16),
-              lastDay: DateTime.utc(2030, 3, 14),
-              focusedDay: _focusedDay,
-
-              // --- CẤU HÌNH TƯƠNG TÁC ---
-              selectedDayPredicate: (day) {
-                // Hàm này trả về true thì ngày đó sẽ sáng lên
-                return isSameDay(_selectedDay, day);
-              },
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay =
-                      focusedDay; // Cập nhật focus để lịch không bị nhảy
-                });
-              },
-
-              // --- CẤU HÌNH GIAO DIỆN (STYLING) ---
-              // HeaderStyle: Chỉnh phần "September 2024" và mũi tên
-              headerStyle: HeaderStyle(
-                titleCentered: false, // Tiêu đề nằm bên trái như hình
-                formatButtonVisible: false, // Ẩn nút chọn 2 weeks/month
-                titleTextStyle: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                leftChevronIcon: Icon(Icons.chevron_left, color: Colors.black),
-                rightChevronIcon: Icon(
-                  Icons.chevron_right,
-                  color: Colors.black,
-                ),
-              ),
-
-              // CalendarStyle: Cấu hình màu sắc mặc định nhanh (nếu không dùng Builders)
-              calendarStyle: CalendarStyle(
-                outsideDaysVisible:
-                    true, // Hiển thị ngày mờ của tháng trước/sau
-                defaultTextStyle: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
-                ),
-                weekendTextStyle: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
-                ),
-              ),
-
-              // --- CUSTOM BUILDERS (QUAN TRỌNG NHẤT VỚI UI CỦA BẠN) ---
-              // Dùng cái này để vẽ chính xác cái ô tròn xanh và ô nét đứt
-              calendarBuilders: CalendarBuilders(
-                // 1. Vẽ ngày được chọn (Màu xanh tròn đặc - số 19, 25 trong hình)
-                selectedBuilder: (context, date, events) {
-                  return Container(
-                    margin: const EdgeInsets.all(4.0),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.lightBlue[300], // Màu xanh nhạt giống hình
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      '${date.day}',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  );
-                },
-
-                // 2. Vẽ ngày hiện tại (Viền nét đứt/chấm - số 8 trong hình)
-                // Lưu ý: Flutter không hỗ trợ border nét đứt (dashed) mặc định,
-                // ta thường dùng package khác hoặc custom painter.
-                // Ở đây mình dùng border dotted cơ bản để mô phỏng.
-                todayBuilder: (context, date, events) {
-                  return Container(
-                    margin: const EdgeInsets.all(4.0),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(
-                        color: Colors.blueAccent,
-                        width: 1.5,
-                        style: BorderStyle
-                            .solid, // Flutter native chưa có dashed border cho BoxDecor
-                      ),
-                      // Mẹo: Để có nét đứt thật sự, cần dùng CustomPaint hoặc package 'dotted_border'
-                      // bọc lấy cái Text này.
-                    ),
-                    child: Text(
-                      '${date.day}',
-                      style: TextStyle(color: Colors.black87, fontSize: 16),
-                    ),
-                  );
-                },
-              ),
-            ),
-
+            _buildCalendarCard(),
             const SizedBox(height: 20),
-
-            calendarMe(),
+            _buildListHeader(),
+            Expanded(child: _buildBookingList(selectedBookings)),
           ],
         ),
       ),
     );
   }
 
-  Widget calendarMe() {
+  Widget _buildTopBar() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Text(
+        "Lịch Trình Đặt Phòng",
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalendarCard() {
     return Container(
-      child: Column(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: TableCalendar(
+        firstDay: DateTime.utc(2020, 1, 1),
+        lastDay: DateTime.utc(2030, 12, 31),
+        focusedDay: _focusedDay,
+        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+        headerStyle: const HeaderStyle(
+          formatButtonVisible: false,
+          titleCentered: true,
+          titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        calendarStyle: CalendarStyle(
+          markerDecoration: const BoxDecoration(
+            color: Colors.orange,
+            shape: BoxShape.circle,
+          ),
+          selectedDecoration: const BoxDecoration(
+            color: Colors.blueAccent,
+            shape: BoxShape.circle,
+          ),
+          todayDecoration: BoxDecoration(
+            color: Colors.blueAccent.withOpacity(0.1),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.blueAccent, width: 1),
+          ),
+          todayTextStyle: const TextStyle(
+            color: Colors.blueAccent,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        onDaySelected: (selectedDay, focusedDay) {
+          setState(() {
+            _selectedDay = selectedDay;
+            _focusedDay = focusedDay;
+          });
+        },
+        eventLoader: _getFilteredBookings,
+      ),
+    );
+  }
+
+  Widget _buildListHeader() {
+    // Sửa lỗi ở đây: Sử dụng toán tử ?? để đảm bảo không bị crash nếu _selectedDay null
+    String dateLabel = DateFormat(
+      'dd MMMM, yyyy',
+    ).format(_selectedDay ?? DateTime.now());
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  "Lịch Trình Của Tôi",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
+              const Text(
+                "Danh sách đơn",
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  "Xem Tất Cả",
-                  style: TextStyle(color: Colors.blueAccent, fontSize: 16),
+              Text(
+                dateLabel,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 20),
-          calendarItem(),
-
-          const SizedBox(height: 20),
-          calendarItem(),
-
-          const SizedBox(height: 20),
-          calendarItem(),
+          TextButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CalendarDetailScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.list_alt, size: 18),
+            label: const Text("Tất cả"),
+          ),
         ],
       ),
     );
   }
 
-  Widget calendarItem() {
+  Widget _buildBookingList(List<BookingDetail> bookings) {
+    if (bookings.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 48,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Không có lịch trình ngày này",
+              style: TextStyle(color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: bookings.length,
+      itemBuilder: (context, index) => _buildBookingItem(bookings[index]),
+    );
+  }
+
+  Widget _buildBookingItem(BookingDetail booking) {
     return Container(
-      padding: EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
         color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: Image(
-              image: AssetImage("assets/images/anh.avif"),
-              width: 90,
-              height: 90,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 15),
+          _getStatusIcon(booking.status),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  "The Aston Vill Hotel",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_month,
-                      size: 16,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      "20 Dec 2023",
-                      style: TextStyle(color: Colors.grey[400]),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "\$200.7",
-                        style: TextStyle(
-                          color: Colors.blue, // Màu xanh chủ đạo
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' /night',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
-                      ),
-                    ],
+                  booking.customerName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Phone: ${booking.customerPhone}",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(width: 10),
-
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.navigate_next_outlined, color: Colors.black),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                NumberFormat.currency(
+                  locale: 'vi',
+                  symbol: 'đ',
+                ).format(booking.finalPrice),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "${booking.status.name}",
+                style: TextStyle(
+                  fontSize: 11,
+                  color: _getStatusColor(booking.status),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Color _getStatusColor(BookingStatusEnum status) {
+    switch (status) {
+      case BookingStatusEnum.peding:
+        return Colors.orange;
+      case BookingStatusEnum.checkIn:
+        return Colors.blue;
+      case BookingStatusEnum.checkedOut:
+        return Colors.green;
+      case BookingStatusEnum.canceled:
+        return Colors.red;
+    }
+  }
+
+  Widget _getStatusIcon(BookingStatusEnum status) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: _getStatusColor(status).withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        _getIconData(status),
+        color: _getStatusColor(status),
+        size: 20,
+      ),
+    );
+  }
+
+  IconData _getIconData(BookingStatusEnum status) {
+    switch (status) {
+      case BookingStatusEnum.peding:
+        return Icons.access_time_rounded;
+      case BookingStatusEnum.checkIn:
+        return Icons.login_rounded;
+      case BookingStatusEnum.checkedOut:
+        return Icons.logout_rounded;
+      case BookingStatusEnum.canceled:
+        return Icons.cancel_outlined;
+    }
   }
 }
