@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
 import 'package:hotel_booking_app/screens/main_menu_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   const OtpVerificationScreen({super.key});
@@ -15,6 +16,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Timer? _timer;
 
   late int second;
+
+  // Giả sử lấy token
+  // late String? token;
 
   void _startTimer() {
     _timer?.cancel();
@@ -37,7 +41,15 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   void initState() {
     super.initState();
     _startTimer();
+    // _loadToken();
   }
+
+  // Future<void> _loadToken() async {
+  //   // Giả sử bạn lấy token từ SharedPreferences hoặc nguồn lưu trữ khác
+  //   final SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   token = prefs.getString('access_token') ?? '';
+  //   setState(() {});
+  // }
 
   @override
   void dispose() {
@@ -204,6 +216,19 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                                     ),
                                   ),
                                 ),
+
+                                // TEST
+                                // const SizedBox(width: 10),
+                                // if (token != null)
+                                //   Text(
+                                //     "Token: $token",
+                                //     style: const TextStyle(
+                                //       fontSize: 10,
+                                //       color: Colors.grey,
+                                //     ),
+                                //     maxLines: 1,
+                                //     overflow: TextOverflow.ellipsis,
+                                //   ),
                               ],
                             ),
                     ),
