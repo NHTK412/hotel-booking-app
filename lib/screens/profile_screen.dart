@@ -27,14 +27,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _textBirthdayController = TextEditingController();
   final TextEditingController _textAddressController = TextEditingController();
 
-  late int currentIndex;
+  late int currentIndex; // Chỉ mục hiện tại của BottomNavigationBar
   bool isEditing = false;
   bool isDataLoaded = false; // Cờ để kiểm soát việc gán dữ liệu lần đầu
 
   @override
   void initState() {
     super.initState();
-    _fetchUser = userRepository.getUserProfile(4);
+    // _fetchUser = userRepository.getUserProfile(4);
+    _fetchUser = userRepository.getCurrentUser();
     currentIndex = 1;
   }
 

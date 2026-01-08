@@ -8,6 +8,8 @@ import 'package:hotel_booking_app/data/model/auth/auth_response.dart';
 import 'package:hotel_booking_app/data/model/auth/oauth_login.dart';
 import 'package:hotel_booking_app/data/repositories/auth_repository.dart';
 import 'package:hotel_booking_app/data/service/auth_service.dart';
+import 'package:hotel_booking_app/screens/home_screen.dart';
+import 'package:hotel_booking_app/screens/main_menu_screen.dart';
 import 'package:hotel_booking_app/screens/otp_verification_screen.dart';
 import 'package:hotel_booking_app/screens/register_screen.dart';
 import 'dart:math';
@@ -213,10 +215,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
             if (login.code == 200) {
               // ignore: use_build_context_synchronously
+              String accessToken = login.data?.accessToken ?? "";
+
+              final SharedPreferences prefs =
+                  await SharedPreferences.getInstance();
+
+              await prefs.setString('access_token', accessToken);
+
+              if (!context.mounted) return;
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const OtpVerificationScreen(),
+                  // builder: (context) => const OtpVerificationScreen(),
+                  builder: (context) => const MainMenuScreen(),
                 ),
               );
             }
@@ -390,9 +402,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const OtpVerificationScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const MainMenuScreen()),
             );
           }
 
