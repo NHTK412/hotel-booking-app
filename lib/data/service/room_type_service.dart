@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:hotel_booking_app/core/network/app_client.dart';
 
 class RoomTypeService {
-  final Dio dio = ApiClient.dio;
+  final Dio dio = ApiClient().dio;
 
   Future<Response> getRoomTypeById(int roomTypeId) async {
     try {

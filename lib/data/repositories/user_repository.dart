@@ -21,4 +21,19 @@ class UserRepository {
       rethrow;
     }
   }
+
+  Future<ApiResponse<UserResponse>> getCurrentUser() async {
+    try {
+      final response = await userService.getCurrentUser();
+
+      final apiResponse = ApiResponse<UserResponse>.fromJson(
+        response.statusCode,
+        response.data,
+        (data) => UserResponse.fromJson(data),
+      );
+      return apiResponse;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

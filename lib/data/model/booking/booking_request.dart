@@ -41,7 +41,10 @@ class BookingRequest {
       'customerName': customerName,
       'customerPhone': customerPhone,
       'customerEmail': customerEmail,
-      'checkInDate': checkInDate.toIso8601String().split('T').first, // Format as 'YYYY-MM-DD'
+      'checkInDate': checkInDate
+          .toIso8601String()
+          .split('T')
+          .first, // Format as 'YYYY-MM-DD'
       'checkOutDate': checkOutDate.toIso8601String().split('T').first,
       'originalPrice': originalPrice,
       'discountedPrice': discountedPrice,

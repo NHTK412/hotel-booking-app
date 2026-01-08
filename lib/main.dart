@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // 1. Thêm thư viện này để chỉnh Status Bar
 import 'package:hotel_booking_app/screens/login_screen.dart';
 import 'package:hotel_booking_app/screens/main_menu_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
   // 2. Thêm đoạn cấu hình này trước khi chạy app
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
