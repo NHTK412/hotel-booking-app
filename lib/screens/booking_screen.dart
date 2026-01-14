@@ -50,6 +50,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   int get _nights => _checkOutDate.difference(_checkInDate).inDays;
 
+
   double get _totalAmount => widget.price * (_nights > 0 ? _nights : 1);
 
   @override

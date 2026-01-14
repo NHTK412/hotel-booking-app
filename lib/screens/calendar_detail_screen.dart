@@ -14,8 +14,8 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
   final List<BookingDetail> _mockData = [
     BookingDetail(
       bookingId: 3,
-      checkInDate: DateTime.parse("2026-01-03"),
-      checkOutDate: DateTime.parse("2026-01-05"),
+      checkInAt: DateTime.parse("2026-01-03"),
+      checkOutAt: DateTime.parse("2026-01-05"),
       customerEmail: "nguyenhuutuankhang412@gmail.com",
       customerName: "Nguyễn Hữu Tuấn Khang",
       customerPhone: "058205002155",
@@ -26,8 +26,8 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
     ),
     BookingDetail(
       bookingId: 4,
-      checkInDate: DateTime.now(),
-      checkOutDate: DateTime.now().add(const Duration(days: 2)),
+      checkInAt: DateTime.now(),
+      checkOutAt: DateTime.now().add(const Duration(days: 2)),
       customerEmail: "customer@example.com",
       customerName: "Trần Thị B",
       customerPhone: "0901234567",
@@ -179,7 +179,7 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "${DateFormat('dd/MM').format(booking.checkInDate)} - ${DateFormat('dd/MM').format(booking.checkOutDate)}",
+                      "${DateFormat('dd/MM').format(booking.checkInAt)} - ${DateFormat('dd/MM').format(booking.checkOutAt)}",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Text(
@@ -264,14 +264,14 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
                     child: _buildInfoTile(
                       Icons.login_rounded,
                       "Check-in",
-                      DateFormat('dd/MM/yyyy').format(booking.checkInDate),
+                      DateFormat('dd/MM/yyyy').format(booking.checkInAt),
                     ),
                   ),
                   Expanded(
                     child: _buildInfoTile(
                       Icons.logout_rounded,
                       "Check-out",
-                      DateFormat('dd/MM/yyyy').format(booking.checkOutDate),
+                      DateFormat('dd/MM/yyyy').format(booking.checkOutAt),
                     ),
                   ),
                 ],
@@ -479,6 +479,8 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
         return Colors.green;
       case BookingStatusEnum.canceled:
         return Colors.red;
+      case BookingStatusEnum.wattingForPayment:
+        return Colors.yellow;
     }
   }
 
@@ -492,6 +494,8 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
         return "Đã trả";
       case BookingStatusEnum.canceled:
         return "Đã hủy";
+      case BookingStatusEnum.wattingForPayment:
+        return "Chờ thanh toán";
     }
   }
 }

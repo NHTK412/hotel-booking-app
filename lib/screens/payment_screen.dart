@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_request.dart';
+import 'package:hotel_booking_app/data/model/zalopay/zalopay_request.dart';
+import 'package:hotel_booking_app/data/model/zalopay/zalopay_response.dart';
 import 'package:hotel_booking_app/data/repositories/booking_repostiory.dart';
+import 'package:hotel_booking_app/data/repositories/zalopay_repository.dart';
 import 'package:hotel_booking_app/data/service/booking_service.dart';
+import 'package:hotel_booking_app/data/service/zalopay_service.dart';
+import 'package:hotel_booking_app/screens/web_view_screen.dart';
 import 'package:intl/intl.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -213,12 +218,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Row(
         children: [
           Image.network(
-            "https://pngimg.com/uploads/paypal/paypal_PNG9.png",
+            // "https://pngimg.com/uploads/paypal/paypal_PNG9.png",
+            "https://cdn.moveek.com/bundles/ornweb/partners/zalopay-icon.png",
             width: 40,
             height: 30,
           ),
           const SizedBox(width: 15),
-          const Text("Paypal", style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text("ZaloPay", style: TextStyle(fontWeight: FontWeight.bold)),
           const Spacer(),
           const Icon(Icons.check_circle, color: Color(0xFF64BCE3)),
         ],
@@ -274,25 +280,59 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                 if (result.code == 200) {
                   // Hiển thị thông báo thành công
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text("Đặt phòng thành công"),
-                      content: const Text("Bạn đã đặt phòng thành công."),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text("OK"),
-                        ),
-                      ],
-                    ),
+                  // showDialog(
+                  //   context: context,
+                  //   builder: (context) => AlertDialog(
+                  //     title: const Text("Đặt phòng thành công"),
+                  //     content: const Text("Bạn đã đặt phòng thành công."),
+                  //     actions: [
+                  //       TextButton(
+                  //         onPressed: () {
+                  //           Navigator.of(context).pop();
+                  //           Navigator.of(context).pop();
+                  //           Navigator.of(context).pop();
+                  //           Navigator.of(context).pop();
+                  //           Navigator.of(context).pop();
+                  //         },
+                  //         child: const Text("OK"),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // );
+
+                  print("DATA BOOKINGID" + result.data!.bookingId.toString());
+
+                  final ZalopayRequest zalopayRequest = ZalopayRequest(
+                    bookingId: result.data!.bookingId,
+                    // amount: widget.originPrice,
+                    description: "THANH TOAN HOA DON DAT PHONG",
                   );
+                  ApiResponse<ZalopayResponse> zalopayResult =
+                      await ZalopayRepository(
+                        zalopayService: ZalopayService(),
+                      ).createZalopayPayment(zalopayRequest);
+
+                  if (zalopayResult.code == 200) {
+                    final zalopayUrl = zalopayResult.data!.orderUrl;
+
+                    print("ZalopayURL" + zalopayUrl);
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            // WebViewScreen(url: zalopayUrl),
+                            WebViewScreen(url: zalopayUrl),
+                      ),
+                    );
+
+                    // final zalopayUrl = zalopayResult.data!.paymentUrl;
+                    // Chuyển hướng người dùng đến URL thanh toán của ZaloPay
+                    // Sử dụng package url_launcher hoặc WebView để mở URL này
+                    // Ví dụ:
+                    // await launchUrlString(zalopayUrl);
+                  } else {
+                    // Xử lý lỗi khi tạo thanh toán ZaloPay
+                  }
                 } else {
                   // Hiển thị thông báo lỗi
                   showDialog(

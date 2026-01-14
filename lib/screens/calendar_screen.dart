@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
+
 // import 'package:hotel_booking_app/models/booking_detail.dart';
 import 'package:hotel_booking_app/screens/calendar_detail_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -22,8 +23,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   final List<BookingDetail> _allBookings = [
     BookingDetail(
       bookingId: 3,
-      checkInDate: DateTime.parse("2026-01-08"),
-      checkOutDate: DateTime.parse("2026-01-10"),
+      checkInAt: DateTime.parse("2026-01-08"),
+      checkOutAt: DateTime.parse("2026-01-10"),
       customerEmail: "khang@gmail.com",
       customerName: "Nguyễn Hữu Tuấn Khang",
       customerPhone: "058205002155",
@@ -43,7 +44,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   List<BookingDetail> _getFilteredBookings(DateTime day) {
     return _allBookings
-        .where((booking) => isSameDay(booking.checkInDate, day))
+        .where((booking) => isSameDay(booking.checkInAt, day))
         .toList();
   }
 
@@ -284,6 +285,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return Colors.green;
       case BookingStatusEnum.canceled:
         return Colors.red;
+      case BookingStatusEnum.wattingForPayment:
+        return Colors.yellow;
     }
   }
 
@@ -312,6 +315,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return Icons.logout_rounded;
       case BookingStatusEnum.canceled:
         return Icons.cancel_outlined;
+      case BookingStatusEnum.wattingForPayment:
+        return Icons.payment_rounded;
     }
   }
 }

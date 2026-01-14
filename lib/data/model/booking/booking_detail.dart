@@ -13,8 +13,8 @@ import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
 
 class BookingDetail {
   final int bookingId;
-  final DateTime checkInDate;
-  final DateTime checkOutDate;
+  final DateTime checkInAt;
+  final DateTime checkOutAt;
   final String customerEmail;
   final String customerName;
   final String customerPhone;
@@ -25,8 +25,8 @@ class BookingDetail {
 
   BookingDetail({
     required this.bookingId,
-    required this.checkInDate,
-    required this.checkOutDate,
+    required this.checkInAt,
+    required this.checkOutAt,
     required this.customerEmail,
     required this.customerName,
     required this.customerPhone,
@@ -39,8 +39,8 @@ class BookingDetail {
   factory BookingDetail.fromJson(Map<String, dynamic> json) {
     return BookingDetail(
       bookingId: json['bookingId'],
-      checkInDate: DateTime.parse(json['checkInDate']),
-      checkOutDate: DateTime.parse(json['checkOutDate']),
+      checkInAt: DateTime.parse(json['checkInAt']),
+      checkOutAt: DateTime.parse(json['checkOutAt']),
       customerEmail: json['customerEmail'],
       customerName: json['customerName'],
       customerPhone: json['customerPhone'],

@@ -8,7 +8,8 @@ enum BookingStatusEnum {
   // đã trả phòng
   checkedOut("Đã trả phòng", Colors.blue),
   // đã hủy
-  canceled("Đã hủy", Colors.red);
+  canceled("Đã hủy", Colors.red),
+  wattingForPayment("Chờ thanh toán", Colors.yellow);
 
   final String value;
   final Color color;
@@ -25,6 +26,8 @@ enum BookingStatusEnum {
         return BookingStatusEnum.checkedOut;
       case 'CANCELED':
         return BookingStatusEnum.canceled;
+      case 'WAITING_FOR_PAYMENT':
+        return BookingStatusEnum.wattingForPayment;
       default:
         throw Exception('Unknown booking status: $status');
     }
