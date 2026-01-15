@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
 import 'package:hotel_booking_app/screens/main_menu_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
-  const OtpVerificationScreen({super.key});
+  final String email;
+  const OtpVerificationScreen({super.key, required this.email});
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -102,7 +104,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                             color: Colors.white,
                           ),
                           onPressed: () {
-                            Navigator.pop(context);
+                            // Navigator.pop(context);
+                            context.pop();
                           },
                         ),
                         Expanded(
@@ -301,12 +304,13 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MainMenuScreen(),
-                          ),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => const MainMenuScreen(),
+                        //   ),
+                        // );
+                        context.go('/home');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF5A9BD5),

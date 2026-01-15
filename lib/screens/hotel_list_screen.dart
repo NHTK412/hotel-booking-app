@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:hotel_booking_app/data/model/accommodation/accommodation_detail.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
@@ -140,17 +141,20 @@ class _HotelListScreenState extends State<HotelListScreen> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: detail.roomTypes?.length ?? 0,
           separatorBuilder: (_, __) => const SizedBox(height: 15),
-          itemBuilder: (context, index) =>
-              _buildRoomCard(detail.roomTypes![index], () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RoomDetailScreen(
-                      roomTypeId: detail.roomTypes![index].roomTypeId!,
-                    ),
-                  ),
-                );
-              }),
+          itemBuilder: (context, index) => _buildRoomCard(
+            detail.roomTypes![index],
+            () {
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => RoomDetailScreen(
+              //       roomTypeId: detail.roomTypes![index].roomTypeId!,
+              //     ),
+              //   ),
+              // );
+              context.push("/room-type/${detail.roomTypes![index].roomTypeId}");
+            },
+          ),
           // itemBuilder: (context, index) =>
           //     Text("${detail.roomTypes![index].roomTypeId}"),
         ),
@@ -163,7 +167,8 @@ class _HotelListScreenState extends State<HotelListScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildIconNav(Icons.arrow_back_ios_new, () => Navigator.pop(context)),
+        // _buildIconNav(Icons.arrow_back_ios_new, () => Navigator.pop(context)),
+        _buildIconNav(Icons.arrow_back_ios_new, () => context.pop()),
         const Text(
           "Chi Tiết Khách Sạn",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

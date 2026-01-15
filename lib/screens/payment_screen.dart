@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/app_router.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_request.dart';
@@ -12,31 +14,34 @@ import 'package:hotel_booking_app/screens/web_view_screen.dart';
 import 'package:intl/intl.dart';
 
 class PaymentScreen extends StatefulWidget {
-  final int roomTypeId;
-  final String customerName;
-  final String customerPhone;
-  final String customerEmail;
-  final DateTime checkInDate;
-  final DateTime checkOutDate;
-  final double originPrice;
-  final String accommodationName;
-  final String roomTypeName;
-  final String checkInTime;
-  final String checkOutTime;
+  // final int roomTypeId;
+  // final String customerName;
+  // final String customerPhone;
+  // final String customerEmail;
+  // final DateTime checkInDate;
+  // final DateTime checkOutDate;
+  // final double originPrice;
+  // final String accommodationName;
+  // final String roomTypeName;
+  // final String checkInTime;
+  // final String checkOutTime;
+
+  final BookingParams bookingParams;
 
   const PaymentScreen({
     super.key,
-    required this.roomTypeId,
-    required this.customerName,
-    required this.customerPhone,
-    required this.customerEmail,
-    required this.checkInDate,
-    required this.checkOutDate,
-    required this.originPrice,
-    required this.accommodationName,
-    required this.roomTypeName,
-    required this.checkInTime,
-    required this.checkOutTime,
+    // required this.roomTypeId,
+    // required this.customerName,
+    // required this.customerPhone,
+    // required this.customerEmail,
+    // required this.checkInDate,
+    // required this.checkOutDate,
+    // required this.originPrice,
+    // required this.accommodationName,
+    // required this.roomTypeName,
+    // required this.checkInTime,
+    // required this.checkOutTime,
+    required this.bookingParams,
   });
 
   @override
@@ -73,7 +78,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    int nights = widget.checkOutDate.difference(widget.checkInDate).inDays;
+    int nights = widget.bookingParams.checkOutDate!
+        .difference(widget.bookingParams.checkInDate!)
+        .inDays;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -117,7 +124,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    widget.accommodationName,
+                    widget.bookingParams.accommodationName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -133,7 +140,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.roomTypeName,
+                  widget.bookingParams.roomTypeName,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -150,12 +157,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const Divider(height: 30),
                 _dateRow(
                   "Nhận phòng",
-                  _formatFullDateTime(widget.checkInDate, widget.checkInTime),
+                  _formatFullDateTime(
+                    widget.bookingParams.checkInDate!,
+                    widget.bookingParams.checkInTime!,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 _dateRow(
                   "Trả phòng",
-                  _formatFullDateTime(widget.checkOutDate, widget.checkOutTime),
+                  _formatFullDateTime(
+                    widget.bookingParams.checkOutDate!,
+                    widget.bookingParams.checkOutTime!,
+                  ),
                 ),
                 const SizedBox(height: 15),
                 Row(
@@ -199,9 +212,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 15),
-          _infoRow("Họ và tên", widget.customerName),
-          _infoRow("Số điện thoại", widget.customerPhone),
-          _infoRow("Email", widget.customerEmail, isLast: true),
+          _infoRow("Họ và tên", widget.bookingParams.customerName!),
+          _infoRow("Số điện thoại", widget.bookingParams.customerPhone!),
+          _infoRow("Email", widget.bookingParams.customerEmail!, isLast: true),
         ],
       ),
     );
@@ -249,7 +262,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 Text(
-                  "${NumberFormat("#,###").format(widget.originPrice)} VND",
+                  "${NumberFormat("#,###").format(widget.bookingParams.originalPrice)} VND",
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -263,15 +276,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 // Xử lý thanh toán ở đây
 
                 BookingRequest bookingRequest = BookingRequest(
-                  roomTypeId: widget.roomTypeId,
-                  customerName: widget.customerName,
-                  customerPhone: widget.customerPhone,
-                  customerEmail: widget.customerEmail,
-                  checkInDate: widget.checkInDate,
-                  checkOutDate: widget.checkOutDate,
-                  originalPrice: widget.originPrice,
+                  roomTypeId: widget.bookingParams.roomTypeId,
+                  customerName: widget.bookingParams.customerName!,
+                  customerPhone: widget.bookingParams.customerPhone!,
+                  customerEmail: widget.bookingParams.customerEmail!,
+                  checkInDate: widget.bookingParams.checkInDate!,
+                  checkOutDate: widget.bookingParams.checkOutDate!,
+                  originalPrice: widget.bookingParams.originalPrice,
                   discountedPrice: 0,
-                  finalPrice: widget.originPrice,
+                  finalPrice: widget.bookingParams.originalPrice,
                 );
 
                 ApiResponse<BookingDetail> result = await BookingRepository(
@@ -381,7 +394,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       IconButton(
-        onPressed: () => Navigator.pop(context),
+        // onPressed: () => Navigator.pop(context),
+        onPressed: () => context.pop(),
         icon: const Icon(Icons.arrow_back_ios_new, size: 18),
       ),
       const Text(

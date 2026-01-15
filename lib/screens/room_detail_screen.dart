@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/app_router.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:hotel_booking_app/data/enum/amenity_enum.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
@@ -11,7 +13,8 @@ import 'package:readmore/readmore.dart';
 class RoomDetailScreen extends StatefulWidget {
   final int roomTypeId;
 
-  const RoomDetailScreen({Key? key, required this.roomTypeId}) : super(key: key);
+  const RoomDetailScreen({Key? key, required this.roomTypeId})
+    : super(key: key);
 
   @override
   _RoomDetailScreenState createState() => _RoomDetailScreenState();
@@ -348,7 +351,8 @@ class DetailHeader extends StatelessWidget {
         _buildIconBox(
           context,
           Icons.arrow_back_ios_new,
-          () => Navigator.pop(context),
+          // () => Navigator.pop(context),
+          () => context.pop(),
         ),
         const Text(
           "Chi Tiết Phòng",
@@ -470,15 +474,26 @@ class BookingButton extends StatelessWidget {
       height: 55,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BookingScreen(
-                roomTypeId: roomTypeId,
-                price: price,
-                accommodationName: accommodationName,
-                roomTypeName: roomTypeName,
-              ),
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => BookingScreen(
+          //       roomTypeId: roomTypeId,
+          //       price: price,
+          //       accommodationName: accommodationName,
+          //       roomTypeName: roomTypeName,
+          //     ),
+          //   ),
+          // );
+
+          context.push(
+            // AppRoute.booking,
+            "/booking",
+            extra: BookingParams(
+              roomTypeId: roomTypeId,
+              originalPrice: price,
+              accommodationName: accommodationName,
+              roomTypeName: roomTypeName,
             ),
           );
         },

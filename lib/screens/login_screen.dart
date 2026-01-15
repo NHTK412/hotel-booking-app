@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/app_state.dart';
 import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
 import 'package:hotel_booking_app/data/enum/oauth_provider_type_enum.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
@@ -8,13 +10,12 @@ import 'package:hotel_booking_app/data/model/auth/auth_response.dart';
 import 'package:hotel_booking_app/data/model/auth/oauth_login.dart';
 import 'package:hotel_booking_app/data/repositories/auth_repository.dart';
 import 'package:hotel_booking_app/data/service/auth_service.dart';
-import 'package:hotel_booking_app/screens/home_screen.dart';
-import 'package:hotel_booking_app/screens/main_menu_screen.dart';
-import 'package:hotel_booking_app/screens/otp_verification_screen.dart';
+
 import 'package:hotel_booking_app/screens/register_screen.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -217,20 +218,24 @@ class _LoginScreenState extends State<LoginScreen> {
               // ignore: use_build_context_synchronously
               String accessToken = login.data?.accessToken ?? "";
 
-              final SharedPreferences prefs =
-                  await SharedPreferences.getInstance();
+              // final SharedPreferences prefs =
+              //     await SharedPreferences.getInstance();
 
-              await prefs.setString('access_token', accessToken);
+              // await prefs.setString('access_token', accessToken);
 
               if (!context.mounted) return;
 
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  // builder: (context) => const OtpVerificationScreen(),
-                  builder: (context) => const MainMenuScreen(),
-                ),
-              );
+              context.read<AppState>().logIn(accessToken);
+
+              // context.go('/home');
+
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     // builder: (context) => const OtpVerificationScreen(),
+              //     builder: (context) => const MainMenuScreen(),
+              //   ),
+              // );
             }
           } on DioException catch (e) {
             late String mess;
@@ -241,14 +246,15 @@ class _LoginScreenState extends State<LoginScreen> {
             }
             // ignore: use_build_context_synchronously
             showDialog(
-              context: Navigator.of(context).context,
+              context: context,
               builder: (_) => AlertDialog(
                 title: const Text("Đăng Nhập Thất Bại"),
                 content: Text(mess),
                 actions: [
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      // Navigator.of(context).pop();
+                      context.pop();
                     },
                     child: const Text("OK"),
                   ),
@@ -281,7 +287,14 @@ class _LoginScreenState extends State<LoginScreen> {
   // 5. Quên mật khẩu
   Widget _buildForgotPassword() {
     return TextButton(
-      onPressed: () {},
+      onPressed: () {
+        context.push(
+          Uri(
+            path: "/password_reset",
+            queryParameters: {"email": _email.text},
+          ).toString(),
+        );
+      },
       child: const Text(
         "Quên mật khẩu?",
         style: TextStyle(color: Color(0xFF8F91BF)),
@@ -395,15 +408,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
             String accessToken = oauthLogin.data?.accessToken ?? "";
 
-            final SharedPreferences prefs =
-                await SharedPreferences.getInstance();
+            // final SharedPreferences prefs =
+            //     await SharedPreferences.getInstance();
 
-            await prefs.setString('access_token', accessToken);
+            // await prefs.setString('access_token', accessToken);
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MainMenuScreen()),
-            );
+            context.read<AppState>().logIn(accessToken);
+
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => const MainMenuScreen()),
+            // );
+
+            // context.go('/home');
           }
 
           // final ApiResponse<AuthResponse> login = await AuthRepository(
@@ -424,19 +441,22 @@ class _LoginScreenState extends State<LoginScreen> {
           if (e.response?.statusCode == 401) {
             mess = "Email hoặc mật khẩu không hợp lệ!";
           } else {
-            // mess = "Đã có lỗi xảy ra"; // Fallback message
-            mess = e.message;
+            mess = "Đã có lỗi xảy ra"; // Fallback message
+            // mess = e.message;
           }
           // ignore: use_build_context_synchronously
           showDialog(
-            context: Navigator.of(context).context,
+            // context: Navigator.of(context).context,
+            context: context,
+
             builder: (_) => AlertDialog(
               title: const Text("Đăng Nhập Thất Bại"),
               content: Text(mess ?? "Đã có lỗi xảy ra"),
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    // Navigator.of(context).pop();
+                    context.pop();
                   },
                   child: const Text("OK"),
                 ),
@@ -484,9 +504,18 @@ class _LoginScreenState extends State<LoginScreen> {
         const Text("Chưa có tài khoản? ", style: TextStyle(fontSize: 14)),
         GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const RegisterScreen()),
+            // Navigator.push(
+            // context,
+            // MaterialPageRoute(builder: (context) => const RegisterScreen()),
+
+            // );
+            // context.push("/register");
+            // context.push("/register?email=${_email.text}");
+            context.push(
+              Uri(
+                path: "/register",
+                queryParameters: {"email": _email.text},
+              ).toString(),
             );
           },
           child: const Text(

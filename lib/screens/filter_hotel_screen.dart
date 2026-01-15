@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/screens/room_detail_screen.dart';
 
 class FilterHotelScreen extends StatefulWidget {
@@ -183,12 +184,13 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
   Widget createPopularCard() {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const RoomDetailScreen(roomTypeId: 1),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => const RoomDetailScreen(roomTypeId: 1),
+        //   ),
+        // );
+        context.push("/room-type/1");
       },
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -295,7 +297,8 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: IconButton(
-            onPressed: () => Navigator.pop(context),
+            // onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           ),
         ),

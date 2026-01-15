@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/app_router.dart';
 import 'package:hotel_booking_app/screens/payment_screen.dart';
 import 'package:intl/intl.dart';
 
 class BookingScreen extends StatefulWidget {
-  final int roomTypeId;
-  final String accommodationName;
-  final String roomTypeName;
-  final double price; // Giá mỗi đêm
+  // final int roomTypeId;
+  // final String accommodationName;
+  // final String roomTypeName;
+  // final double price; // Giá mỗi đêm
+
+  final BookingParams bookingParams;
 
   const BookingScreen({
     super.key,
-    required this.roomTypeId,
-    required this.price,
-    required this.accommodationName,
-    required this.roomTypeName,
+    // required this.roomTypeId,
+    // required this.price,
+    // required this.accommodationName,
+    // required this.roomTypeName,
+    required this.bookingParams,
   });
 
   @override
@@ -50,8 +55,8 @@ class _BookingScreenState extends State<BookingScreen> {
 
   int get _nights => _checkOutDate.difference(_checkInDate).inDays;
 
-
-  double get _totalAmount => widget.price * (_nights > 0 ? _nights : 1);
+  double get _totalAmount =>
+      widget.bookingParams.originalPrice * (_nights > 0 ? _nights : 1);
 
   @override
   Widget build(BuildContext context) {
@@ -108,24 +113,23 @@ class _BookingScreenState extends State<BookingScreen> {
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PaymentScreen(
-                        roomTypeId: widget.roomTypeId,
+                  final BookingParams finalParams = widget.bookingParams
+                      .copyWith(
                         customerName: _nameController.text,
                         customerPhone: _phoneController.text,
                         customerEmail: _emailController.text,
                         checkInDate: _checkInDate,
                         checkOutDate: _checkOutDate,
-                        originPrice: _totalAmount,
-                        accommodationName: widget.accommodationName,
-                        roomTypeName: widget.roomTypeName,
-                        checkInTime: hardcodedCheckInTime,
-                        checkOutTime: hardcodedCheckOutTime,
-                      ),
-                    ),
-                  );
+                      );
+
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) =>
+                  //         PaymentScreen(bookingParams: finalParams),
+                  //   ),
+                  // );
+                  context.push("/payment", extra: finalParams);
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -292,7 +296,8 @@ class _BookingScreenState extends State<BookingScreen> {
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       IconButton(
-        onPressed: () => Navigator.pop(context),
+        // onPressed: () => Navigator.pop(context),
+        onPressed: () => context.pop(),
         icon: const Icon(Icons.arrow_back_ios_new, size: 18),
       ),
       const Text(

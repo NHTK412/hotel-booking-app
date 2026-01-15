@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
 import 'package:intl/intl.dart';
@@ -53,7 +54,8 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
               color: Colors.black,
               size: 20,
             ),
-            onPressed: () => Navigator.pop(context),
+            // onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
           ),
           centerTitle: true,
           title: const Text(

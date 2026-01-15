@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:hotel_booking_app/data/model/accommodation/accommodation_summary.dart';
 import 'package:hotel_booking_app/data/repositories/accommodation_repository.dart';
@@ -64,14 +65,21 @@ class _FavoriteHotelScreenState extends State<FavoriteHotelScreen> {
               itemCount: accommodations.length,
               itemBuilder: (context, index) {
                 return createPopularCard(accommodations[index], () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HotelListScreen(
-                        accommodationId:
-                            accommodations[index].accommodationId ?? 0,
-                      ),
-                    ),
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => HotelListScreen(
+                  //       accommodationId:
+                  //           accommodations[index].accommodationId ?? 0,
+                  //     ),
+                  //   ),
+                  // );
+                  context.push(
+                    '/hotel_list',
+                    extra: {
+                      'accommodationId':
+                          accommodations[index].accommodationId ?? 0,
+                    },
                   );
                 });
               },

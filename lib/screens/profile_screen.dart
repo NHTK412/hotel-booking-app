@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/app_state.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
 import 'package:hotel_booking_app/data/model/user/user_response.dart';
 import 'package:hotel_booking_app/data/repositories/user_repository.dart';
 import 'package:hotel_booking_app/data/service/user_service.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -363,7 +365,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       width: double.infinity,
       height: 50,
       child: OutlinedButton.icon(
-        onPressed: () {},
+        onPressed: () {
+          context.read<AppState>().logOut();
+        },
         icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
         label: const Text("Đăng xuất"),
         style: OutlinedButton.styleFrom(

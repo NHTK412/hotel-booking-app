@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/app_state.dart';
 import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
 import 'package:hotel_booking_app/data/model/auth/auth_resgister.dart';
@@ -7,9 +9,12 @@ import 'package:hotel_booking_app/data/repositories/auth_repository.dart';
 import 'package:hotel_booking_app/data/service/auth_service.dart';
 import 'package:hotel_booking_app/screens/home_screen.dart';
 import 'package:hotel_booking_app/screens/main_menu_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
+  // final String email;
+  // const RegisterScreen({super.key, required this.email});
   const RegisterScreen({super.key});
 
   @override
@@ -84,7 +89,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   curve: Curves.easeInOut,
                                 );
                               } else {
-                                Navigator.pop(context);
+                                // Navigator.pop(context);
+                                context.pop();
                               }
                             },
                             icon: const Icon(
@@ -349,15 +355,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       String accessToken = authResponse.accessToken ?? "";
 
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      // final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      await prefs.setString('access_token', accessToken);
+      // await prefs.setString('access_token', accessToken);
 
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => MainMenuScreen()),
-      );
+      // if (!mounted) return;
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => MainMenuScreen()),
+      // );
+      // context.go('/home');
+      context.read<AppState>().logIn(accessToken);
+
       // Navigator.pop(context); // Quay
     } else {
       // Đăng ký thất bại

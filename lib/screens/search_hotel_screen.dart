@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/screens/hotel_list_screen.dart';
 
 class SearchHotelScreen extends StatefulWidget {
@@ -44,12 +45,14 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
   Widget buildResultCard() {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const HotelListScreen(accommodationId: 1),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => const HotelListScreen(accommodationId: 1),
+        //   ),
+        // );
+        // context.push(Uri(path: "accommodation", pathSegments: "1").toString()
+        context.push("/accommodation/1");
       },
       child: Container(
         decoration: BoxDecoration(
@@ -248,7 +251,8 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
         ),
         const SizedBox(width: 10),
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          // onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           child: const Text(
             "Hủy",
             style: TextStyle(

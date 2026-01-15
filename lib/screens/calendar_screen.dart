@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
 
@@ -170,12 +171,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ],
           ),
           TextButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CalendarDetailScreen(),
-              ),
-            ),
+            // onPressed: () => Navigator.push(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (context) => const CalendarDetailScreen(),
+            //   ),
+            // ),
+            onPressed: () => context.push("/calendar_detail"),
             icon: const Icon(Icons.list_alt, size: 18),
             label: const Text("Tất cả"),
           ),

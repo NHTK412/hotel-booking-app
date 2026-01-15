@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:hotel_booking_app/data/repositories/accommodation_repository.dart';
 import 'package:hotel_booking_app/data/service/accommodation_service.dart';
@@ -81,14 +82,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // borderRadius: BorderRadius.circular(10),
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return SearchHotelScreen();
-                          },
-                        ),
-                      );
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) {
+                      //       return SearchHotelScreen();
+                      //     },
+                      //   ),
+                      // );
+                      context.push("/search");
                     },
                     icon: Icon(Icons.search, size: 30),
                   ),
@@ -239,12 +241,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FilterHotelScreen(),
-                            ),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => FilterHotelScreen(),
+                          //   ),
+                          // );
+
+                          context.push("/filter");
                         },
                         child: Text(
                           "Xem tất cả",
@@ -432,12 +436,13 @@ class _HomeScreenState extends State<HomeScreen> {
     //       Container(
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RoomDetailScreen(roomTypeId: 1),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => RoomDetailScreen(roomTypeId: 1),
+        //   ),
+        // );
+        context.push("/room-type/1");
       },
       child: Container(
         // padding: EdgeInsets.symmetric(vertical: 10),
@@ -595,15 +600,16 @@ class _HomeScreenState extends State<HomeScreen> {
     //       Container(
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
+        // Navigator.push(
+        //   context,
 
-          MaterialPageRoute(
-            builder: (context) => HotelListScreen(
-              accommodationId: accommodationSummary.accommodationId ?? 1,
-            ),
-          ),
-        );
+        //   MaterialPageRoute(
+        //     builder: (context) => HotelListScreen(
+        //       accommodationId: accommodationSummary.accommodationId ?? 1,
+        //     ),
+        //   ),
+        // );
+        context.push("/accommodation/${accommodationSummary.accommodationId}");
       },
       child: Container(
         // padding: EdgeInsets.symmetric(vertical: 10),
@@ -760,14 +766,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget createPopularCard(AccommodationSummary accommodationSummary) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HotelListScreen(
-              accommodationId: accommodationSummary.accommodationId ?? 1,
-            ),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => HotelListScreen(
+        //       accommodationId: accommodationSummary.accommodationId ?? 1,
+        //     ),
+        //   ),
+        // );
+        context.push("/accommodation/${accommodationSummary.accommodationId}");
       },
       child: Container(
         // width: MediaQuery.of(context).size.width * 0.8,
