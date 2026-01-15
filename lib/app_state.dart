@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppState extends ChangeNotifier {
-
-  AppState._internal(); 
+  AppState._internal();
 
   static final AppState instance = AppState._internal();
 
@@ -50,7 +49,7 @@ class AppState extends ChangeNotifier {
 
   bool get isLoggedIn => _token != null;
 
-  void loadToken() async {
+  Future<void> loadToken() async {
     final pref = await SharedPreferences.getInstance();
     _token = pref.getString('access_token');
     notifyListeners();

@@ -21,9 +21,13 @@ void main() async {
     ),
   );
 
+  // final appState = AppState.instance;
+  // await appState.loadToken();
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppState.instance..loadToken(),
+      // create: (context) => appState,
       child: const MyApp(),
     ),
   );

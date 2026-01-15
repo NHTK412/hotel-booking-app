@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/data/model/accommodation/accommodation_summary.dart';
 import 'package:hotel_booking_app/screens/hotel_list_screen.dart';
 
 class SearchHotelScreen extends StatefulWidget {
@@ -10,6 +11,16 @@ class SearchHotelScreen extends StatefulWidget {
 }
 
 class _SearchHotelScreenState extends State<SearchHotelScreen> {
+  late List<AccommodationSummary> searchResults;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    searchResults = [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,16 +36,41 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
 
             // Danh sách kết quả cuộn được
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                itemCount: 5, // Số lượng kết quả
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0),
-                    child: buildResultCard(),
-                  );
-                },
-              ),
+              child: (searchResults.isEmpty)
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Icon(Icons.room_preferences, size: 50, color: Colors.grey[300]),
+                          Icon(
+                            // Icons.favorite_border,
+                            Icons.search_off,
+                            size: 50,
+                            color: Colors.grey[300],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            // "Không có phòng nào",
+                            // "Chưa có khách sạn yêu thích",
+                            "Chưa có kết quả tìm kiếm",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      itemCount: 5, // Số lượng kết quả
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 20.0),
+                          child: buildResultCard(),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

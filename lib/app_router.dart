@@ -7,6 +7,7 @@ import 'package:hotel_booking_app/screens/favorite_hotel_screen.dart';
 import 'package:hotel_booking_app/screens/filter_hotel_screen.dart';
 import 'package:hotel_booking_app/screens/home_screen.dart';
 import 'package:hotel_booking_app/screens/hotel_list_screen.dart';
+import 'package:hotel_booking_app/screens/locations_screen.dart';
 import 'package:hotel_booking_app/screens/login_screen.dart';
 import 'package:hotel_booking_app/screens/main_menu_screen.dart';
 import 'package:hotel_booking_app/screens/otp_verification_screen.dart';
@@ -71,6 +72,14 @@ class AppRouter {
       ),
 
       GoRoute(
+        path: "/locations",
+        builder: (context, state) {
+          // return LocationsScreen();
+          return const LocationsScreen();
+        },
+      ),
+
+      GoRoute(
         path: "/search",
         builder: (context, state) {
           return const SearchHotelScreen();
@@ -78,7 +87,7 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: "payment",
+        path: "/payment",
         builder: (context, state) {
           // return PaymentScreen();
           final BookingParams params = state.extra as BookingParams;
@@ -135,6 +144,8 @@ class AppRouter {
       ),
     ],
     redirect: (context, state) {
+      // if (!appState.initialized) return null;
+
       final bool isLoggedIn = appState.isLoggedIn;
       final String location = state.matchedLocation;
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hotel_booking_app/screens/room_detail_screen.dart';
+import 'package:hotel_booking_app/data/model/roomtype/room_type_summary.dart';
 
 class FilterHotelScreen extends StatefulWidget {
   const FilterHotelScreen({super.key});
@@ -10,11 +10,199 @@ class FilterHotelScreen extends StatefulWidget {
 }
 
 class _FilterHotelScreenState extends State<FilterHotelScreen> {
+  late String _location;
+
+  late List<RoomTypeSummary> roomTypes;
+
+  // Logic chọn ngày: Mặc định từ hôm nay đến ngày mai
+  DateTimeRange _selectedDateRange = DateTimeRange(
+    start: DateTime.now(),
+    end: DateTime.now().add(const Duration(days: 1)),
+  );
+
+  // Logic chọn phòng và khách
+  int _rooms = 1;
+  int _guests = 2;
+
+  @override
+  void initState() {
+    super.initState();
+    _location = "Khách sạn gần bạn";
+
+    // roomTypes = [
+    //   RoomTypeSummary(
+    //     roomTypeId: 1,
+    //     name: "Phòng Deluxe",
+    //     star: 5,
+    //     price: 150000.0,
+    //     image: "deluxe_room.jpg",
+    //   ),
+    //   RoomTypeSummary(
+    //     roomTypeId: 2,
+    //     name: "Phòng Superior",
+    //     star: 4,
+    //     price: 120000.0,
+    //     image: "superior_room.jpg",
+    //   ),
+    //   RoomTypeSummary(
+    //     roomTypeId: 3,
+    //     name: "Phòng Standard",
+    //     star: 3,
+    //     price: 100000.0,
+    //     image: "standard_room.jpg",
+    //   ),
+    // ];
+
+    roomTypes = [];
+  }
+
+  // Hàm format ngày hiển thị
+  String _formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year}";
+  }
+
+  // Hàm xử lý chọn khoảng ngày
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDateRange: _selectedDateRange,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF64BCE3),
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDateRange = picked;
+      });
+    }
+  }
+
+  // Hàm hiển thị bộ chọn số phòng & khách
+  void _showGuestPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(25),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Số lượng cụ thể",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildCounterRow("Số phòng", _rooms, (val) {
+                    setModalState(() => _rooms = val);
+                    setState(() {});
+                  }),
+                  const Divider(),
+                  _buildCounterRow("Số khách", _guests, (val) {
+                    setModalState(() => _guests = val);
+                    setState(() {});
+                  }),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF64BCE3),
+                      minimumSize: const Size(double.infinity, 55),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      "Xác nhận",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCounterRow(String title, int value, Function(int) onChange) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: value > 1 ? () => onChange(value - 1) : null,
+                icon: Icon(
+                  Icons.remove_circle_outline,
+                  color: value > 1 ? Colors.redAccent : Colors.grey,
+                ),
+              ),
+              Container(
+                constraints: const BoxConstraints(minWidth: 30),
+                child: Text(
+                  "$value",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              IconButton(
+                onPressed: () => onChange(value + 1),
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: Color(0xFF64BCE3),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      // Màu nền sáng giúp Card nổi bật
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -25,23 +213,55 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
               const SizedBox(height: 25),
               findForm(),
               const SizedBox(height: 30),
-
-              // Thêm tiêu đề cho phần khách sạn phổ biến
               const Text(
-                "Khách sạn phổ biến",
+                "Danh sách phòng",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 15),
 
-              // Sử dụng ListView không cuộn trong SingleChildScrollView
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 4,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 15),
-                itemBuilder: (context, index) => createPopularCard(),
-              ),
+              // ListView.separated(
+              //   shrinkWrap: true,
+              //   physics: const NeverScrollableScrollPhysics(),
+              //   itemCount: 4,
+              //   separatorBuilder: (context, index) =>
+              //       const SizedBox(height: 15),
+              //   itemBuilder: (context, index) => createPopularCard(),
+              // ),
+              if (roomTypes.isEmpty)
+                Container(
+                  // height: double.infinity,
+                  height: 200,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.room_preferences,
+                          size: 50,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "Không có phòng nào",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: roomTypes.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 15),
+                  itemBuilder: (context, index) =>
+                      createPopularCard(roomTypes[index]),
+                ),
               const SizedBox(height: 20),
             ],
           ),
@@ -67,38 +287,40 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
       ),
       child: Column(
         children: [
-          // Mục: Điểm đến
           _buildFormRow(
             icon: Icons.location_on,
             iconColor: Colors.redAccent,
             label: "Điểm đến, khách sạn",
-            value: "Khách sạn gần bạn",
-            onTap: () {},
+            value: _location,
+            onTap: () async {
+              final String? locationSelect = await context.push("/locations");
+              if (locationSelect != null) {
+                setState(() => _location = locationSelect);
+              }
+            },
           ),
           const Divider(height: 30),
 
-          // Mục: Ngày & Số đêm
+          // Mục: Ngày Nhận & Ngày Trả
           Row(
             children: [
               Expanded(
-                flex: 2,
                 child: _buildFormRow(
                   icon: Icons.calendar_today,
                   iconColor: Colors.green,
                   label: "Ngày nhận phòng",
-                  value: "Thứ 4, 12/06",
-                  onTap: () {},
+                  value: _formatDate(_selectedDateRange.start),
+                  onTap: () => _selectDateRange(context),
                 ),
               ),
               Container(height: 40, width: 1, color: Colors.grey[200]),
               Expanded(
-                flex: 1,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 15),
                   child: _buildFormRow(
-                    label: "Số đêm",
-                    value: "1 đêm",
-                    onTap: () {},
+                    label: "Ngày trả phòng",
+                    value: _formatDate(_selectedDateRange.end),
+                    onTap: () => _selectDateRange(context),
                   ),
                 ),
               ),
@@ -106,18 +328,17 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
           ),
           const Divider(height: 30),
 
-          // Mục: Khách hàng
+          // Mục: Khách hàng & Phòng
           _buildFormRow(
             icon: Icons.people,
             iconColor: Colors.blue,
             label: "Số phòng và khách",
-            value: "1 phòng, 2 khách",
-            onTap: () {},
+            value: "$_rooms phòng, $_guests khách",
+            onTap: () => _showGuestPicker(context),
           ),
 
           const SizedBox(height: 30),
 
-          // Nút Tìm phòng
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF64BCE3),
@@ -128,7 +349,9 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
               minimumSize: const Size(double.infinity, 55),
               elevation: 0,
             ),
-            onPressed: () {},
+            onPressed: () {
+              // Xử lý tìm kiếm với các biến: _location, _selectedDateRange, _rooms, _guests
+            },
             child: const Text(
               "Tìm Phòng Ngay",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -139,7 +362,6 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
     );
   }
 
-  // Hàm hỗ trợ build hàng cho Form để tránh lặp code
   Widget _buildFormRow({
     IconData? icon,
     Color? iconColor,
@@ -149,6 +371,7 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -181,17 +404,10 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
     );
   }
 
-  Widget createPopularCard() {
+  Widget createPopularCard(RoomTypeSummary? roomType) {
     return GestureDetector(
-      onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => const RoomDetailScreen(roomTypeId: 1),
-        //   ),
-        // );
-        context.push("/room-type/1");
-      },
+      // onTap: () => context.push("/room-type/1"),
+      onTap: () => context.push('/room-type/${roomType?.roomTypeId ?? 0}'),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -211,6 +427,7 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
               borderRadius: BorderRadius.circular(14),
               child: const Image(
                 image: AssetImage("assets/images/anh.avif"),
+                // image: AssetImage("assets/images/hotel1.jpg"),
                 width: 90,
                 height: 90,
                 fit: BoxFit.cover,
@@ -224,9 +441,10 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          "The Aston Vill Hotel",
+                          // "The Aston Vill Hotel",
+                          roomType?.name ?? "Tên phòng",
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -236,11 +454,12 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
                         ),
                       ),
                       Row(
-                        children: const [
+                        children: [
                           Icon(Icons.star, color: Colors.amber, size: 16),
                           SizedBox(width: 4),
                           Text(
-                            '5.0',
+                            // '5.0',
+                            roomType?.star.toString() ?? "0",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
@@ -259,8 +478,9 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
                   Text.rich(
                     TextSpan(
                       children: [
-                        const TextSpan(
-                          text: '\$200.7',
+                        TextSpan(
+                          // text: '\$200.7',
+                          text: '${roomType?.getPriceToString() ?? "0"} VNĐ',
                           style: TextStyle(
                             color: Color(0xFF64BCE3),
                             fontWeight: FontWeight.bold,
@@ -297,7 +517,6 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: IconButton(
-            // onPressed: () => Navigator.pop(context),
             onPressed: () => context.pop(),
             icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           ),
@@ -306,7 +525,7 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
           "Tìm Phòng",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(width: 48), // Giữ cân bằng layout
+        const SizedBox(width: 48),
       ],
     );
   }
