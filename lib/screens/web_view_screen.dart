@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -31,7 +32,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
             final uri = Uri.parse(url);
 
             // 1️⃣ intent://
-            if (uri.scheme == 'intent') { 
+            if (uri.scheme == 'intent') {
               try {
                 final package =
                     uri.queryParameters['package'] ?? 'vn.com.vng.zalopay';
@@ -88,7 +89,14 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('WebView')),
+      appBar: AppBar(
+        title: const Text('WebView'),
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () => context.go("/home"),
+          icon: const Icon(Icons.arrow_back_ios_new),
+        ),
+      ),
       body: WebViewWidget(controller: controller),
     );
   }

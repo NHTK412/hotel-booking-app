@@ -94,4 +94,34 @@ class AccommodationRepository {
       rethrow;
     }
   }
+  
+
+  Future<ApiResponse<List<AccommodationSummary>>> getAllAccommodationsBySearch(
+    String keyword,
+    int page,
+    int size,
+  ) async {
+    try {
+      final Response response = await accommodationService
+          .getAllAccommondationBySearch(keyword, page, size);
+
+      final ApiResponse<List<AccommodationSummary>> apiResponse =
+          ApiResponse.fromJson(
+            response.statusCode,
+            response.data,
+            (data) => (data as List)
+                .map(
+                  (item) => AccommodationSummary.fromJson(
+                    item as Map<String, dynamic>,
+                  ),
+                )
+                .toList(),
+          );
+      return apiResponse;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  
 }

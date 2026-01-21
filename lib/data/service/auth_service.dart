@@ -36,6 +36,45 @@ class AuthService {
       rethrow; // Nghĩa là chuyển tiếp lỗi để xử lý ở nơi gọi hàm
     }
   }
+
+  Future<Response> resetPassword(String newPassword) async {
+    try {
+      final Response response = await dio.post(
+        'auth/reset-password',
+        queryParameters: {'newPassword': newPassword},
+      );
+      return response;
+    } catch (e) {
+      rethrow; // Nghĩa là chuyển tiếp lỗi để xử lý ở nơi gọi hàm
+    }
+  }
+
+  Future<Response> sendOtp(String email) async {
+    try {
+      final Response response = await dio.post(
+        'auth/send-otp',
+        queryParameters: {'email': email},
+      );
+      return response;
+    } catch (e) {
+      rethrow; // Nghĩa là chuyển tiếp lỗi để xử lý ở nơi gọi hàm
+    }
+  }
+
+  Future<Response> verifyOtp(String email, String otp) async {
+    try {
+      final Response response = await dio.post(
+        'auth/verify-otp',
+        queryParameters: {
+          'email': email,
+          'otp': otp,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow; // Nghĩa là chuyển tiếp lỗi để xử lý ở nơi gọi hàm
+    }
+  }
 }
 
 // Future<Response<dynamic>> register() async {}

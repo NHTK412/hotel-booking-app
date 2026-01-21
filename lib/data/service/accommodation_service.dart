@@ -49,4 +49,19 @@ class AccommodationService {
       rethrow;
     }
   }
+
+  Future<Response> getAllAccommondationBySearch(
+    String keyword, int page, int size,
+  ) async {
+    try {
+      final Response response = await dio.get(
+        'accommodations/search',
+        queryParameters: Map.of({'keyword': keyword, 'page': page, 'size': size}),
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
 } // This class will handle accommodation-related services

@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:ui'; // Để dùng ImageFilter.blur
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hotel_booking_app/components/vector_wave_clipper.dart';
-import 'package:hotel_booking_app/screens/main_menu_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hotel_booking_app/app_state.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/auth/verify_otp_response.dart';
+import 'package:hotel_booking_app/data/repositories/auth_repository.dart';
+import 'package:hotel_booking_app/data/service/auth_service.dart';
+import 'package:provider/provider.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String email;
@@ -16,47 +20,77 @@ class OtpVerificationScreen extends StatefulWidget {
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Timer? _timer;
+  late int _secondsRemaining;
 
-  late int second;
+  // Quản lý focus cho 4 ô
+  final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
+  final List<TextEditingController> _controllers = List.generate(
+    4,
+    (index) => TextEditingController(),
+  );
 
-  // Giả sử lấy token
-  // late String? token;
-
-  void _startTimer() {
-    _timer?.cancel();
-
-    second = 60;
-
-    _timer = Timer.periodic(Duration(seconds: 1), (Timer? timer) {
-      if (second >= 0) {
-        setState(() {
-          second--;
-        });
-      } else {
-        second = 0;
-        timer?.cancel();
-      }
-    });
-  }
+  // Style đồng bộ
+  final Color primaryBlue = const Color(0xFF5496D2);
+  final Color lightBlueBg = const Color(0xFFF0F4F8);
 
   @override
   void initState() {
     super.initState();
     _startTimer();
-    // _loadToken();
+    sendOtp();
   }
 
-  // Future<void> _loadToken() async {
-  //   // Giả sử bạn lấy token từ SharedPreferences hoặc nguồn lưu trữ khác
-  //   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   token = prefs.getString('access_token') ?? '';
-  //   setState(() {});
-  // }
+  Future<void> sendOtp() async {
+    ApiResponse<bool> response = await AuthRepository(
+      AuthService(),
+    ).sendOtp(widget.email);
+
+    if (response.code == 200) {
+      // OTP đã được gửi thành công
+    } else {
+      // Xử lý lỗi nếu cần
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Lỗi"),
+            content: const Text("Không thể gửi mã OTP. Vui lòng thử lại."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _secondsRemaining = 60;
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
 
   @override
   void dispose() {
-    super.dispose();
     _timer?.cancel();
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -64,312 +98,297 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // --- PHẦN HEADER VỚI VECTOR SHAPE MỚI ---
-            Stack(
-              children: [
-                ClipPath(
-                  clipper: VectorWaveClipper(), // Sử dụng Clipper mới
-                  child: Container(
-                    height:
-                        size.height *
-                        0.55, // Tăng chiều cao để chứa đường cong sâu
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF29B6F6), // Màu xanh sáng (Light Blue)
-                          Color(0xFF039BE5), // Màu xanh đậm hơn một chút
-                        ],
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // --- BACKGROUND DECORATION (Blobs) ---
+          Positioned(
+            top: -size.width * 0.2,
+            left: -size.width * 0.2,
+            child: Container(
+              height: size.width * 0.6,
+              width: size.width * 0.6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: primaryBlue.withOpacity(0.1),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+          ),
+
+          // --- MAIN CONTENT ---
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  // 1. Back Button
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () => context.pop(),
+                      icon: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.grey[700],
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.all(12),
+                        elevation: 2,
+                        shadowColor: Colors.grey.withOpacity(0.2),
                       ),
                     ),
                   ),
-                ),
-                // Nội dung Header (Nút Back và Text)
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 10,
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {
-                            // Navigator.pop(context);
-                            context.pop();
-                          },
-                        ),
-                        Expanded(
-                          child: Text(
-                            "Đăng nhập",
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 48),
-                      ],
-                    ),
-                  ),
-                ),
-                const Positioned(
-                  bottom: -20, // Thụt xuống dưới 20px
-                  left: 0,
-                  // top: 0,
-                  right: 0,
-                  child: const Image(
-                    image: AssetImage("assets/images/image.png"),
-                  ),
-                ),
-              ],
-            ),
 
-            // --- PHẦN NHẬP OTP (Giữ nguyên) ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Điều chỉnh khoảng cách âm (negative margin) nếu muốn nội dung đè lên hình nền
-                  // Ở đây tôi dùng SizedBox thông thường
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Nhập mã OTP...",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                  const SizedBox(height: 30),
+
+                  // 2. Icon & Title
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: lightBlueBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.lock_person_rounded,
+                      size: 50,
+                      color: primaryBlue,
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  Text(
+                    "Xác thực OTP",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Mã xác thực 4 số đã được gửi đến email",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.email, // Hiển thị email người dùng
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+
                   const SizedBox(height: 40),
 
+                  // 3. OTP Input Fields
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: List.generate(4, (index) {
-                      bool first = (index == 0) ? true : false;
-                      bool last = (index == 3) ? true : false;
-                      return _buildOtpBox(first: first, last: last);
+                      return _buildOtpBox(index);
                     }),
                   ),
 
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height:
-                        40, // Cố định chiều cao là 40 (hoặc số khác tùy bạn chỉnh)
-                    child: Center(
-                      child: second > 0
-                          ? RichText(
-                              text: TextSpan(
-                                text: "Gửi lại mã trong ",
-                                style: const TextStyle(
-                                  color: Colors.blueAccent,
-                                  fontSize: 14,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: "$second giây",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  "Bạn chưa nhận được mã? ",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      second = 60;
-                                    });
-                                    _startTimer();
-                                  },
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: const Text(
-                                    "Gửi lại mã!",
-                                    style: TextStyle(
-                                      color: Colors.blueAccent,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
+                  const SizedBox(height: 40),
 
-                                // TEST
-                                // const SizedBox(width: 10),
-                                // if (token != null)
-                                //   Text(
-                                //     "Token: $token",
-                                //     style: const TextStyle(
-                                //       fontSize: 10,
-                                //       color: Colors.grey,
-                                //     ),
-                                //     maxLines: 1,
-                                //     overflow: TextOverflow.ellipsis,
-                                //   ),
-                              ],
+                  // 4. Timer & Resend
+                  _secondsRemaining > 0
+                      ? RichText(
+                          text: TextSpan(
+                            text: "Gửi lại mã trong ",
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 15,
                             ),
-                    ),
-                  ),
-                  // Center(
-                  //   child: second > 0
-                  //       ? RichText(
-                  //           text: TextSpan(
-                  //             text: "Gửi lại mã trong ",
-                  //             style: TextStyle(
-                  //               color: Colors.blueAccent,
-                  //               fontSize: 14,
-                  //             ),
-                  //             children: [
-                  //               TextSpan(
-                  //                 text: "$second giây",
-                  //                 style: TextStyle(fontWeight: FontWeight.bold),
-                  //               ),
-                  //             ],
-                  //           ),
-                  //         )
-                  //       : Row(
-                  //           mainAxisAlignment: MainAxisAlignment
-                  //               .center, // Căn giữa dòng chữ này trong màn hình
-                  //           children: [
-                  //             // Phần 1: Text tĩnh (Không bấm được)
-                  //             Text(
-                  //               "Bạn chưa nhận được mã? ",
-                  //               style: TextStyle(
-                  //                 fontSize: 14,
-                  //                 color:
-                  //                     Colors.black, // Hoặc màu xám tùy design
-                  //                 // color: Theme.of(context).colorScheme.primary,
-                  //               ),
-                  //             ),
+                            children: [
+                              TextSpan(
+                                text:
+                                    "00:${_secondsRemaining.toString().padLeft(2, '0')}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryBlue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Không nhận được mã? ",
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _secondsRemaining = 60;
+                                  // Reset các ô nhập liệu nếu cần
+                                  // for (var c in _controllers) c.clear();
+                                });
+                                sendOtp();
+                                _startTimer();
+                                // TODO: Gọi API gửi lại OTP tại đây
+                              },
+                              child: Text(
+                                "Gửi lại",
+                                style: TextStyle(
+                                  color: primaryBlue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
 
-                  //             // Phần 2: TextButton (Nút bấm Gửi lại mã)
-                  //             TextButton(
-                  //               onPressed: () {
-                  //                 // Logic đếm ngược và gửi lại của bạn
-                  //                 setState(() {
-                  //                   second = 60;
-                  //                 });
-                  //                 _startTimer();
-                  //               },
-                  //               // Tinh chỉnh style để nút bấm không bị khoảng cách quá xa so với chữ
-                  //               style: TextButton.styleFrom(
-                  //                 padding: EdgeInsets
-                  //                     .zero, // Xóa khoảng trắng mặc định quanh nút
-                  //                 minimumSize: Size
-                  //                     .zero, // Xóa kích thước tối thiểu để nó gọn như text thường
-                  //                 tapTargetSize: MaterialTapTargetSize
-                  //                     .shrinkWrap, // Thu gọn vùng bấm
-                  //               ),
-                  //               child: const Text(
-                  //                 "Gửi lại mã!",
-                  //                 style: TextStyle(
-                  //                   color: Colors.blueAccent,
-                  //                   fontSize: 14,
-                  //                   fontWeight: FontWeight.bold,
-                  //                 ),
-                  //               ),
-                  //             ),
-                  //           ],
-                  //         ),
-                  // ),
                   const SizedBox(height: 50),
+
+                  // 5. Verify Button
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 56,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => const MainMenuScreen(),
-                        //   ),
-                        // );
-                        context.go('/home');
+                      onPressed: () async {
+                        // Logic ghép mã OTP
+                        String otpCode = _controllers.map((e) => e.text).join();
+                        if (otpCode.length < 4) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Vui lòng nhập đủ 4 số OTP"),
+                            ),
+                          );
+                          return;
+                        }
+
+                        ApiResponse<VerifyOtpResponse> response =
+                            await AuthRepository(
+                              AuthService(),
+                            ).verifyOtp(widget.email, otpCode);
+                        if (response.code == 200) {
+                          final VerifyOtpResponse verifyOtpData =
+                              response.data!;
+                          if (verifyOtpData.isValid == true) {
+                            // OTP hợp lệ, chuyển
+                            String accessToken =
+                                verifyOtpData.accessToken ?? "";
+                            context.read<AppState>().logIn(accessToken);
+
+                            // Chuyển hướng về trang đổi mật khẩu
+                            context.push("/reset-password");
+
+                            return;
+
+                          } else {
+                            // OTP không hợp lệ
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Mã OTP không hợp lệ"),
+                              ),
+                            );
+                          }
+                        }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5A9BD5),
+                        backgroundColor: primaryBlue,
+                        foregroundColor: Colors.white,
+                        elevation: 3,
+                        shadowColor: primaryBlue.withOpacity(0.4),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular(18),
                         ),
-                        elevation: 2,
                       ),
                       child: const Text(
                         "XÁC THỰC",
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          letterSpacing: 1,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildOtpBox({required bool first, required bool last}) {
+  // Helper: OTP Box Widget
+  Widget _buildOtpBox(int index) {
     return Container(
-      width: 60,
-      height: 60,
+      width: 65,
+      height: 65,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(12),
+        color: lightBlueBg, // Màu nền xám xanh nhạt
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          // Đổ bóng nhẹ bên trong tạo cảm giác lõm (optional) hoặc nổi
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.05),
+            offset: const Offset(2, 2),
+            blurRadius: 4,
+          ),
+        ],
+        border: Border.all(
+          // Viền sẽ đổi màu khi có focus
+          color: _focusNodes[index].hasFocus ? primaryBlue : Colors.transparent,
+          width: 1.5,
+        ),
       ),
       child: Center(
-        child: TextFormField(
-          onChanged: (value) => {
-            if (value.length == 1 && !last)
-              {FocusScope.of(context).nextFocus()}
-            else if (value.isEmpty && !first)
-              {FocusScope.of(context).previousFocus()}
-            else if (last && value.length == 1)
-              {FocusScope.of(context).unfocus()},
-
-            // if (value.isEmpty && value.length == 0)
-
-            // {
-            //   FocusScope.of(context).previousFocus(),
-            // }
-          },
+        child: TextField(
+          controller: _controllers[index],
+          focusNode: _focusNodes[index],
+          autofocus: index == 0, // Ô đầu tiên tự focus
+          textAlign: TextAlign.center,
+          keyboardType: TextInputType.number,
+          maxLength: 1,
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
+            color: primaryBlue,
           ),
-          textAlign: TextAlign.center,
-          decoration: InputDecoration(border: InputBorder.none),
+          decoration: const InputDecoration(
+            counterText: "", // Ẩn số đếm ký tự
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.zero,
+          ),
+          onChanged: (value) {
+            if (value.isNotEmpty) {
+              // Nếu nhập xong 1 số -> chuyển sang ô tiếp theo
+              if (index < 3) {
+                FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
+              } else {
+                // Ô cuối cùng -> ẩn bàn phím
+                FocusScope.of(context).unfocus();
+              }
+            } else {
+              // Nếu xóa (empty) -> chuyển về ô trước đó
+              if (index > 0) {
+                FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
+              }
+            }
+            // Trigger rebuild để cập nhật border color
+            setState(() {});
+          },
+          onTap: () {
+            // Khi bấm vào ô, set state để border sáng lên
+            setState(() {});
+          },
         ),
       ),
     );

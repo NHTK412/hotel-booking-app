@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/config/app_config.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/roomtype/room_type_detail.dart';
 import 'package:hotel_booking_app/data/model/roomtype/room_type_summary.dart';
+import 'package:hotel_booking_app/data/repositories/location_repository.dart';
+import 'package:hotel_booking_app/data/repositories/room_type_repository.dart';
+import 'package:hotel_booking_app/data/service/location_service.dart';
+import 'package:hotel_booking_app/data/service/room_type_service.dart';
+import 'package:intl/intl.dart';
 
 class FilterHotelScreen extends StatefulWidget {
   const FilterHotelScreen({super.key});
@@ -13,6 +21,11 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
   late String _location;
 
   late List<RoomTypeSummary> roomTypes;
+
+  final RoomTypeService _roomTypeService = RoomTypeService();
+
+  bool _isLoading = false;
+  String? _errorMessage;
 
   // Logic chọn ngày: Mặc định từ hôm nay đến ngày mai
   DateTimeRange _selectedDateRange = DateTimeRange(
@@ -54,6 +67,82 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
     // ];
 
     roomTypes = [];
+  }
+
+  Future<void> _fetchRoomTypes() async {
+    final String checkInDate = DateFormat(
+      'yyyy-MM-dd',
+    ).format(_selectedDateRange.start);
+    final String checkOutDate = DateFormat(
+      'yyyy-MM-dd',
+    ).format(_selectedDateRange.end);
+
+    final int? capacity = (_guests <= 0) ? null : _guests;
+    final int? bedrooms = (_rooms <= 0) ? null : _rooms;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    List<RoomTypeSummary> fetchedRoomTypes = [];
+    String? error;
+
+    try {
+      // final response = await _roomTypeService.getAllRoomTypes(
+      //   checkInDate: checkInDate,
+      //   checkOutDate: checkOutDate,
+      //   capacity: capacity,
+      //   bedrooms: bedrooms,
+      // );
+
+      // final ApiResponse<List<RoomTypeSummary>> apiResponse =
+      //     ApiResponse.fromJson(
+      //       response.statusCode,
+      //       response.data,
+      //       (data) => (data as List)
+      //           .map(
+      //             (item) =>
+      //                 RoomTypeSummary.fromJson(item as Map<String, dynamic>),
+      //           )
+      //           .toList(),
+      //     );
+
+      List<String> address = _location.split(', ');
+
+      String city = address.isNotEmpty ? address.last : '';
+      String? district = address.length > 1
+          ? address[address.length - 2]
+          : null;
+
+      final ApiResponse<List<RoomTypeSummary>> apiResponse =
+          await RoomTypeRepository(RoomTypeService()).getAllRoomTypes(
+            checkInDate: checkInDate,
+            checkOutDate: checkOutDate,
+            capacity: capacity,
+            bedrooms: bedrooms,
+            city: city,
+            district: district,
+          );
+
+      roomTypes = apiResponse.data ?? [];
+
+      if (apiResponse.success == true) {
+        fetchedRoomTypes = apiResponse.data ?? [];
+      } else {
+        error = apiResponse.message ?? 'Không thể tải danh sách phòng.';
+      }
+    } catch (e) {
+      error = e.toString();
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      _errorMessage = error;
+      roomTypes = (error == null) ? fetchedRoomTypes : [];
+    });
   }
 
   // Hàm format ngày hiển thị
@@ -168,10 +257,10 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
           Row(
             children: [
               IconButton(
-                onPressed: value > 1 ? () => onChange(value - 1) : null,
+                onPressed: value > 0 ? () => onChange(value - 1) : null,
                 icon: Icon(
                   Icons.remove_circle_outline,
-                  color: value > 1 ? Colors.redAccent : Colors.grey,
+                  color: value > 0 ? Colors.redAccent : Colors.grey,
                 ),
               ),
               Container(
@@ -218,18 +307,24 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 15),
-
-              // ListView.separated(
-              //   shrinkWrap: true,
-              //   physics: const NeverScrollableScrollPhysics(),
-              //   itemCount: 4,
-              //   separatorBuilder: (context, index) =>
-              //       const SizedBox(height: 15),
-              //   itemBuilder: (context, index) => createPopularCard(),
-              // ),
-              if (roomTypes.isEmpty)
+              if (_isLoading)
                 Container(
-                  // height: double.infinity,
+                  height: 200,
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(),
+                )
+              else if (_errorMessage != null)
+                Container(
+                  height: 200,
+                  alignment: Alignment.center,
+                  child: Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
+                )
+              else if (roomTypes.isEmpty)
+                Container(
                   height: 200,
                   child: Center(
                     child: Column(
@@ -287,17 +382,32 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
       ),
       child: Column(
         children: [
-          _buildFormRow(
-            icon: Icons.location_on,
-            iconColor: Colors.redAccent,
-            label: "Điểm đến, khách sạn",
-            value: _location,
-            onTap: () async {
-              final String? locationSelect = await context.push("/locations");
-              if (locationSelect != null) {
-                setState(() => _location = locationSelect);
-              }
-            },
+          Row(
+            children: [
+              Expanded(
+                child: _buildFormRow(
+                  icon: Icons.location_on,
+                  iconColor: Colors.redAccent,
+                  label: "Điểm đến, khách sạn",
+                  value: _location,
+                  onTap: () async {
+                    final String? locationSelect = await context.push(
+                      "/locations",
+                    );
+                    if (locationSelect != null) {
+                      setState(() => _location = locationSelect);
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                onPressed: () {
+                  context.push("/map");
+                },
+                icon: Icon(Icons.map, color: Colors.grey[400], size: 28),
+              ),
+            ],
           ),
           const Divider(height: 30),
 
@@ -350,7 +460,7 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
               elevation: 0,
             ),
             onPressed: () {
-              // Xử lý tìm kiếm với các biến: _location, _selectedDateRange, _rooms, _guests
+              _fetchRoomTypes();
             },
             child: const Text(
               "Tìm Phòng Ngay",
@@ -405,8 +515,10 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
   }
 
   Widget createPopularCard(RoomTypeSummary? roomType) {
+    // Helper để check nhanh
+    bool hasDiscount = roomType?.hasDiscount ?? false;
+
     return GestureDetector(
-      // onTap: () => context.push("/room-type/1"),
       onTap: () => context.push('/room-type/${roomType?.roomTypeId ?? 0}'),
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -423,29 +535,66 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
         ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: const Image(
-                image: AssetImage("assets/images/anh.avif"),
-                // image: AssetImage("assets/images/hotel1.jpg"),
-                width: 90,
-                height: 90,
-                fit: BoxFit.cover,
-              ),
+            // --- 1. ẢNH & BADGE GIẢM GIÁ ---
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.network(
+                    "${AppConfig.baseUrl}images/${roomType?.image}",
+                    width: 90,
+                    height: 90,
+                    fit: BoxFit.cover,
+                    // Fallback nếu ảnh lỗi hoặc null thì hiện ảnh asset cũ
+                    errorBuilder: (context, error, stackTrace) => const Image(
+                      image: AssetImage("assets/images/anh.avif"),
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                // Badge giảm giá
+                if (hasDiscount)
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        roomType?.getDiscountLabel() ?? "", // Vd: -20%
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 15),
+
+            // --- 2. THÔNG TIN CHI TIẾT ---
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Tên và Sao
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
-                          // "The Aston Vill Hotel",
                           roomType?.name ?? "Tên phòng",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
@@ -455,12 +604,11 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.star, color: Colors.amber, size: 16),
-                          SizedBox(width: 4),
+                          const Icon(Icons.star, color: Colors.amber, size: 16),
+                          const SizedBox(width: 4),
                           Text(
-                            // '5.0',
                             roomType?.star.toString() ?? "0",
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
                             ),
@@ -470,32 +618,56 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
+
+                  // Địa chỉ (Có thể lấy từ model nếu có field address)
                   Text(
                     "Alice Springs, Australia",
                     style: TextStyle(color: Colors.grey[500], fontSize: 12),
                   ),
-                  const SizedBox(height: 12),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          // text: '\$200.7',
-                          text: '${roomType?.getPriceToString() ?? "0"} VNĐ',
-                          style: TextStyle(
-                            color: Color(0xFF64BCE3),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' / đêm',
-                          style: TextStyle(
-                            color: Colors.grey[400],
+                  const SizedBox(
+                    height: 8,
+                  ), // Giảm khoảng cách chút cho cân đối
+                  // --- GIÁ TIỀN (LOGIC MỚI) ---
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Nếu có giảm giá -> Hiện giá gốc gạch ngang
+                      if (hasDiscount)
+                        Text(
+                          "${roomType?.getOriginalPriceToString()} VNĐ",
+                          style: const TextStyle(
                             fontSize: 12,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
                           ),
                         ),
-                      ],
-                    ),
+
+                      // Giá cuối cùng (Màu nổi)
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text:
+                                  '${roomType?.getFinalPriceToString() ?? "0"} VNĐ',
+                              style: TextStyle(
+                                color: hasDiscount
+                                    ? Colors.redAccent
+                                    : const Color(0xFF64BCE3),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' / đêm',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

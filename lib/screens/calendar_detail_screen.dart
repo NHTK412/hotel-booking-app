@@ -23,7 +23,7 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
       discountedPrice: 10000,
       finalPrice: 90000,
       originalPrice: 100000,
-      status: BookingStatusEnum.peding,
+      status: BookingStatusEnum.pending,
     ),
     BookingDetail(
       bookingId: 4,
@@ -83,7 +83,7 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
         ),
         body: TabBarView(
           children: [
-            _buildListByStatus(BookingStatusEnum.peding),
+            _buildListByStatus(BookingStatusEnum.pending),
             _buildListByStatus(BookingStatusEnum.checkIn),
             _buildListByStatus(BookingStatusEnum.checkedOut),
             _buildListByStatus(BookingStatusEnum.canceled),
@@ -473,7 +473,7 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
 
   Color _getStatusColor(BookingStatusEnum status) {
     switch (status) {
-      case BookingStatusEnum.peding:
+      case BookingStatusEnum.pending:
         return Colors.orange;
       case BookingStatusEnum.checkIn:
         return Colors.blue;
@@ -488,7 +488,7 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
 
   String _getStatusText(BookingStatusEnum status) {
     switch (status) {
-      case BookingStatusEnum.peding:
+      case BookingStatusEnum.pending:
         return "Chờ nhận";
       case BookingStatusEnum.checkIn:
         return "Đã nhận";

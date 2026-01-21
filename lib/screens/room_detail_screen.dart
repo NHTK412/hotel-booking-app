@@ -5,10 +5,12 @@ import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:hotel_booking_app/data/enum/amenity_enum.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
 import 'package:hotel_booking_app/data/model/roomtype/room_type_detail.dart';
+// import 'package:hotel_booking_app/data/model/roomtype/room_type_detail.dart'; // Sử dụng class model ở trên
 import 'package:hotel_booking_app/data/repositories/room_type_repository.dart';
 import 'package:hotel_booking_app/data/service/room_type_service.dart';
 import 'package:hotel_booking_app/screens/booking_screen.dart';
 import 'package:readmore/readmore.dart';
+import 'package:intl/intl.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final int roomTypeId;
@@ -21,9 +23,7 @@ class RoomDetailScreen extends StatefulWidget {
 }
 
 class _RoomDetailScreenState extends State<RoomDetailScreen> {
-  String? _error;
-  bool _isLoading = false;
-  RoomTypeDetail? _roomTypeDetail;
+  late Future<ApiResponse<RoomTypeDetail>> _roomDetailFuture;
 
   final RoomTypeRepository _roomTypeRepository = RoomTypeRepository(
     RoomTypeService(),
@@ -32,20 +32,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchData();
-  }
-
-  Future<void> _fetchData() async {
-    try {
-      setState(() => _isLoading = true);
-      final ApiResponse<RoomTypeDetail> result = await _roomTypeRepository
-          .getRoomTypeById(widget.roomTypeId);
-      _roomTypeDetail = result.data;
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      setState(() => _isLoading = false);
-    }
+    _roomDetailFuture = _roomTypeRepository.getRoomTypeById(widget.roomTypeId);
   }
 
   @override
@@ -53,96 +40,112 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: (_isLoading)
-            ? const Center(child: CircularProgressIndicator())
-            : (_error != null)
-            ? Center(child: Text("Lỗi: $_error"))
-            : _createBody(_roomTypeDetail),
+        child: FutureBuilder<ApiResponse<RoomTypeDetail>>(
+          future: _roomDetailFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text("Lỗi: ${snapshot.error}"));
+            } else if (snapshot.hasData && snapshot.data?.data != null) {
+              final roomTypeDetail = snapshot.data!.data!;
+
+              // Tính toán giá để truyền vào nút đặt phòng
+              final double finalPrice = roomTypeDetail.getFinalPrice();
+
+              return Stack(
+                children: [
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(25, 20, 25, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const DetailHeader(),
+                          const SizedBox(height: 20),
+                          _createImageBanner(roomTypeDetail.image ?? ""),
+                          const SizedBox(height: 25),
+
+                          // --- UPDATED: Truyền toàn bộ object để hiển thị giá ---
+                          _createDetailTitle(roomType: roomTypeDetail),
+
+                          const SizedBox(height: 15),
+                          _createBasicInfoRow(
+                            bedroom: roomTypeDetail.bedroom ?? 0,
+                            capacity: roomTypeDetail.capacity ?? 0,
+                          ),
+                          const SizedBox(height: 20),
+                          const Divider(thickness: 1, color: Color(0xFFEEEEEE)),
+                          const SizedBox(height: 15),
+                          const Text(
+                            "Tiện ích",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _createCategory(roomTypeDetail.amenities),
+                          const SizedBox(height: 25),
+                          _buildDescription(
+                            roomTypeDetail.description ?? "Chưa có mô tả",
+                          ),
+                          const SizedBox(height: 25),
+                          if (roomTypeDetail.imagesPreview.isNotEmpty)
+                            DetailPreview(images: roomTypeDetail.imagesPreview),
+                          const SizedBox(height: 25),
+                          const ReviewSection(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            offset: const Offset(0, -4),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: BookingButton(
+                        roomTypeId: widget.roomTypeId,
+                        // --- UPDATED: Sử dụng giá Final ---
+                        price: roomTypeDetail.price ?? 0,
+                        accommodationName: "Demo Accommodation",
+                        roomTypeName: roomTypeDetail.name ?? "",
+                        discountedPrice: roomTypeDetail.discount ?? 0,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return const Center(child: Text("Không tìm thấy dữ liệu"));
+            }
+          },
+        ),
       ),
-      bottomNavigationBar: _roomTypeDetail != null
-          ? Padding(
-              padding: EdgeInsets.all(20.0),
-              child: BookingButton(
-                roomTypeId: widget.roomTypeId,
-                price: _roomTypeDetail!.price!,
-                // accommodationName: _roomTypeDetail!.accommodationName!,
-                accommodationName: "Demo Accommodation",
-                roomTypeName: _roomTypeDetail!.name!,
-              ),
-            )
-          : null,
     );
   }
 
-  Widget _createBody(RoomTypeDetail? roomTypeDetail) {
-    if (roomTypeDetail == null) return const SizedBox();
+  // --- WIDGET CẬP NHẬT HIỂN THỊ GIÁ ---
+  Widget _createDetailTitle({required RoomTypeDetail roomType}) {
+    // Lấy thông tin giá từ Model
+    String originalPrice = roomType.getOriginalPriceToString(); // Giá gốc
+    String finalPrice = roomType.getFinalPriceToString(); // Giá sau giảm
+    String? discountBadge = roomType.getDiscountString(); // "-20%"
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const DetailHeader(),
-          const SizedBox(height: 20),
-          _createImageBanner(roomTypeDetail.image ?? ""),
-          const SizedBox(height: 25),
-          _createDetailTitle(
-            title: roomTypeDetail.name ?? "N/A",
-            location: roomTypeDetail.localtion ?? "Unknown",
-            price: roomTypeDetail.getMinPricePerNightToString(),
-            star: roomTypeDetail.star ?? 0,
-          ),
-          const SizedBox(height: 20),
-          const Divider(),
-          const SizedBox(height: 10),
-          const Text(
-            "Tiện ích",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          _createCategory(
-            roomTypeDetail.amenities ?? [],
-            roomTypeDetail.star ?? 0,
-          ),
-          const SizedBox(height: 25),
-          const DetailDescription(),
-          const SizedBox(height: 25),
-          const DetailPreview(),
-          const SizedBox(height: 25),
+    // Kiểm tra xem có giảm giá không (nếu discount > 0)
+    bool hasDiscount = (roomType.discount != null && roomType.discount! > 0);
 
-          // --- PHẦN NHẬN XÉT (REVIEWS) ---
-          const Text(
-            "Nhận xét từ khách hàng",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 15),
-          _buildReviewItem(
-            name: "Nguyễn Văn A",
-            avatarUrl: "https://ui-avatars.com/api/?name=A&background=random",
-            rating: 5,
-            comment:
-                "Phòng rất sạch sẽ và đầy đủ tiện nghi. Nhân viên phục vụ nhiệt tình, vị trí thuận lợi cho việc di chuyển.",
-            date: "12/10/2025",
-          ),
-          _buildReviewItem(
-            name: "Trần Thị B",
-            avatarUrl: "https://ui-avatars.com/api/?name=B&background=random",
-            rating: 4,
-            comment: "View rất đẹp, đồ ăn sáng ngon. Sẽ quay lại lần sau.",
-            date: "05/10/2025",
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _createDetailTitle({
-    required String title,
-    required String location,
-    required String price,
-    required int star,
-  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -150,12 +153,13 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Cột TRÁI: Tên và Sao
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    roomType.name ?? "N/A",
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -166,7 +170,9 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   Row(
                     children: List.generate(5, (index) {
                       return Icon(
-                        index < star ? Icons.star : Icons.star_border,
+                        index < (roomType.star ?? 0)
+                            ? Icons.star
+                            : Icons.star_border,
                         color: Colors.orange,
                         size: 18,
                       );
@@ -175,19 +181,60 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                 ],
               ),
             ),
+
+            // Cột PHẢI: Giá hiển thị
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // 1. Hiển thị Giá Gốc (nếu có giảm giá)
+                if (hasDiscount)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          discountBadge ?? "",
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "$originalPrice ₫",
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                          decoration: TextDecoration.lineThrough, // Gạch ngang
+                        ),
+                      ),
+                    ],
+                  ),
+
+                // 2. Hiển thị Giá Cuối (Final Price)
                 Text(
-                  "$price VNĐ",
-                  style: const TextStyle(
+                  "$finalPrice ₫",
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF64BCE3),
+                    // Nếu có giảm giá thì màu Đỏ cho nổi bật, không thì màu xanh chủ đạo
+                    color: hasDiscount
+                        ? const Color(0xFFE53935)
+                        : const Color(0xFF64BCE3),
                   ),
                 ),
                 const Text(
-                  "mỗi đêm",
+                  "/ đêm",
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
@@ -195,6 +242,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           ],
         ),
         const SizedBox(height: 12),
+        // Location
         Row(
           children: [
             const Icon(
@@ -205,7 +253,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                location,
+                roomType.localtion ?? "Unknown",
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -217,6 +265,8 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
+  // ... Các widget khác (_createImageBanner, _createBasicInfoRow, etc.) giữ nguyên như cũ ...
+
   Widget _createImageBanner(String imageUrl) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
@@ -227,14 +277,48 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         width: double.infinity,
         errorBuilder: (context, error, stackTrace) => Container(
           height: 250,
-          color: Colors.grey[300],
-          child: const Icon(Icons.broken_image, size: 50),
+          color: Colors.grey[200],
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+          ),
         ),
       ),
     );
   }
 
-  Widget _createCategory(List<AmenityEnum> amenities, int star) {
+  Widget _createBasicInfoRow({required int bedroom, required int capacity}) {
+    return Row(
+      children: [
+        _buildInfoItem(Icons.bed_outlined, "$bedroom Phòng ngủ"),
+        const SizedBox(width: 20),
+        _buildInfoItem(Icons.people_outline, "$capacity Khách"),
+      ],
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.grey[700]),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[800],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createCategory(List<AmenityEnum> amenities) {
+    if (amenities.isEmpty)
+      return const Text(
+        "Chưa cập nhật tiện ích",
+        style: TextStyle(color: Colors.grey),
+      );
     return Wrap(
       spacing: 10.0,
       runSpacing: 10.0,
@@ -269,30 +353,168 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  // Widget hiển thị từng dòng nhận xét
-  Widget _buildReviewItem({
-    required String name,
-    required String avatarUrl,
-    required int rating,
-    required String comment,
-    required String date,
-  }) {
+  Widget _buildDescription(String description) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Mô tả",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        ReadMoreText(
+          description,
+          textAlign: TextAlign.justify,
+          trimMode: TrimMode.Line,
+          trimLines: 3,
+          colorClickableText: const Color(0xFF64BCE3),
+          trimCollapsedText: ' Xem thêm',
+          trimExpandedText: ' Rút gọn',
+          style: const TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
+        ),
+      ],
+    );
+  }
+}
+
+// --- CÁC COMPONENT CON ---
+class DetailHeader extends StatelessWidget {
+  const DetailHeader({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        GestureDetector(
+          onTap: () => context.pop(),
+          child: Container(
+            width: 45,
+            height: 45,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                ),
+              ],
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: const Icon(
+              Icons.arrow_back_ios_new,
+              size: 18,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        const Text(
+          "Chi Tiết Phòng",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(width: 45),
+      ],
+    );
+  }
+}
+
+class DetailPreview extends StatelessWidget {
+  final List<String> images;
+  const DetailPreview({Key? key, required this.images}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Hình ảnh xem trước",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 90,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: images.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  "${AppConfig.baseUrl}images/${images[index]}",
+                  width: 130,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 130,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.image_not_supported),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ReviewSection extends StatelessWidget {
+  const ReviewSection({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Nhận xét",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const Text(
+                "Xem tất cả",
+                style: TextStyle(color: Color(0xFF64BCE3)),
+              ),
+            ),
+          ],
+        ),
+        // Hardcode review example
+        _buildReviewItem(
+          "Nguyễn Văn A",
+          "https://i.pinimg.com/originals/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg",
+          5,
+          "Phòng sạch đẹp, nhân viên thân thiện.",
+          "12/10/2025",
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReviewItem(
+    String name,
+    String avatar,
+    int rating,
+    String comment,
+    String date,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(avatarUrl),
-                radius: 20,
-              ),
+              CircleAvatar(backgroundImage: NetworkImage(avatar), radius: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -300,10 +522,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(
                       date,
@@ -313,13 +532,17 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                 ),
               ),
               Row(
-                children: List.generate(5, (index) {
-                  return Icon(
-                    Icons.star,
-                    size: 14,
-                    color: index < rating ? Colors.orange : Colors.grey[300],
-                  );
-                }),
+                children: [
+                  const Icon(Icons.star, size: 14, color: Colors.orange),
+                  Text(
+                    "$rating",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -338,126 +561,12 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   }
 }
 
-// --- CÁC COMPONENT HỖ TRỢ ---
-
-class DetailHeader extends StatelessWidget {
-  const DetailHeader({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildIconBox(
-          context,
-          Icons.arrow_back_ios_new,
-          // () => Navigator.pop(context),
-          () => context.pop(),
-        ),
-        const Text(
-          "Chi Tiết Phòng",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        // _buildIconBox(context, Icons.favorite_border, () {}),
-        const SizedBox(width: 48),
-      ],
-    );
-  }
-
-  Widget _buildIconBox(
-    BuildContext context,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return Container(
-      width: 45,
-      height: 45,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-        ],
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: IconButton(
-        onPressed: onTap,
-        icon: Icon(icon, size: 18, color: Colors.black),
-      ),
-    );
-  }
-}
-
-class DetailDescription extends StatelessWidget {
-  const DetailDescription({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text(
-          "Mô tả",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 10),
-        ReadMoreText(
-          "Khách sạn cung cấp không gian sang trọng với thiết kế hiện đại, đầy đủ tiện nghi cao cấp. Tọa lạc tại vị trí đắc địa, giúp quý khách dễ dàng di chuyển đến các địa điểm tham quan nổi tiếng. Dịch vụ tận tâm, chuyên nghiệp chắc chắn sẽ làm hài lòng quý khách trong suốt kỳ nghỉ.",
-          textAlign: TextAlign.justify,
-          trimMode: TrimMode.Line,
-          trimLines: 3,
-          colorClickableText: Colors.blue,
-          trimCollapsedText: ' Xem thêm',
-          trimExpandedText: ' Rút gọn',
-          style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.5),
-        ),
-      ],
-    );
-  }
-}
-
-class DetailPreview extends StatelessWidget {
-  const DetailPreview({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Hình ảnh xem trước",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 90,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 4,
-            itemBuilder: (context, index) => Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  "https://picsum.photos/200/300?random=$index",
-                  width: 130,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class BookingButton extends StatelessWidget {
   final int roomTypeId;
-  final double price;
-
+  final double price; // Đây là giá Final
   final String accommodationName;
   final String roomTypeName;
+  final double discountedPrice;
 
   const BookingButton({
     Key? key,
@@ -465,6 +574,7 @@ class BookingButton extends StatelessWidget {
     required this.price,
     required this.accommodationName,
     required this.roomTypeName,
+    required this.discountedPrice,
   }) : super(key: key);
 
   @override
@@ -474,26 +584,14 @@ class BookingButton extends StatelessWidget {
       height: 55,
       child: ElevatedButton(
         onPressed: () {
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => BookingScreen(
-          //       roomTypeId: roomTypeId,
-          //       price: price,
-          //       accommodationName: accommodationName,
-          //       roomTypeName: roomTypeName,
-          //     ),
-          //   ),
-          // );
-
           context.push(
-            // AppRoute.booking,
             "/booking",
             extra: BookingParams(
               roomTypeId: roomTypeId,
-              originalPrice: price,
+              originalPrice: price, // Truyền giá Final sang màn booking
               accommodationName: accommodationName,
               roomTypeName: roomTypeName,
+              discountedPrice: discountedPrice,
             ),
           );
         },

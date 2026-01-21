@@ -21,7 +21,9 @@ class AuthInterceptor extends Interceptor {
     final isPublicEndpoint =
         options.path.contains('auth/login') ||
         options.path.contains('auth/register') ||
-        options.path.contains('auth/oauth');
+        options.path.contains('auth/oauth') ||
+        options.path.contains('auth/send-otp') ||
+        options.path.contains('auth/verify-otp');
 
     if (!isPublicEndpoint && accessToken != null && accessToken.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $accessToken';

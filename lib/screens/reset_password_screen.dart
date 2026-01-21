@@ -1,4 +1,6 @@
-import 'dart:ui'; // Để dùng ImageFilter.blur
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
 
 import 'package:dio/dio.dart'; // Import Dio để bắt lỗi chính xác
 import 'package:flutter/material.dart';
@@ -12,25 +14,21 @@ import 'package:hotel_booking_app/data/repositories/auth_repository.dart';
 import 'package:hotel_booking_app/data/service/auth_service.dart';
 import 'package:provider/provider.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
-
+class ResetPasswordScreen extends StatefulWidget {
+  const ResetPasswordScreen({Key? key}) : super(key: key);
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  _ResetPasswordScreenState createState() => _ResetPasswordScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   // Controller nhập liệu
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _confirmPassController = TextEditingController();
 
   // Trạng thái
-  bool _obscurePass = true;
-  bool _obscureConfirmPass = true;
-  bool _isLoading = false;
+  bool _obscurePass = true; // Ẩn hiện mật khẩu
+  bool _obscureConfirmPass = true; // Ẩn hiện mật khẩu xác nhận
+  bool _isLoading = false; // Hiển thị loading khi xử lý
 
   // Màu chủ đạo (Đồng bộ với Login)
   final Color primaryBlue = const Color(0xFF5496D2);
@@ -38,9 +36,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
     _passController.dispose();
     _confirmPassController.dispose();
     super.dispose();
@@ -156,26 +151,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       child: Column(
                         children: [
-                          _buildInputBox(
-                            controller: _nameController,
-                            icon: Icons.person_outline_rounded,
-                            hint: "Họ và tên",
-                            inputType: TextInputType.name,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildInputBox(
-                            controller: _emailController,
-                            icon: Icons.alternate_email_rounded,
-                            hint: "Email",
-                            inputType: TextInputType.emailAddress,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildInputBox(
-                            controller: _phoneController,
-                            icon: Icons.phone_android_rounded,
-                            hint: "Số điện thoại",
-                            inputType: TextInputType.phone,
-                          ),
                           const SizedBox(height: 16),
                           _buildInputBox(
                             controller: _passController,
@@ -297,18 +272,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Ẩn bàn phím
     FocusManager.instance.primaryFocus?.unfocus();
 
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final phone = _phoneController.text.trim();
     final password = _passController.text;
     final confirmPassword = _confirmPassController.text;
 
     // Validate
-    if (name.isEmpty ||
-        email.isEmpty ||
-        phone.isEmpty ||
-        password.isEmpty ||
-        confirmPassword.isEmpty) {
+    if (password.isEmpty || confirmPassword.isEmpty) {
       _showErrorDialog("Vui lòng điền đầy đủ tất cả thông tin.");
       return;
     }
@@ -326,28 +294,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final authRegister = AuthRegister(
-        name: name,
-        email: email,
-        phone: phone,
-        password: password,
-      );
+      // final authRegister = AuthRegister(
+      //   name: name,
+      //   email: email,
+      //   phone: phone,
+      //   password: password,
+      // );
 
-      final ApiResponse<AuthResponse> response = await AuthRepository(
+      String newPassword = password;
+
+      // final ApiResponse<bool> response = await context
+      //     .read<AuthRepository>()
+      //     .resetPassword(newPassword);
+
+      final ApiResponse<bool> response = await AuthRepository(
         AuthService(),
-      ).register(authRegister);
+      ).resetPassword(newPassword);
 
       if (!mounted) return;
 
       if (response.code == 200) {
-        final AuthResponse authResponse = response.data!;
-        String accessToken = authResponse.accessToken ?? "";
-
-        // Đăng nhập luôn sau khi đăng ký thành công
-        context.read<AppState>().logIn(accessToken);
-
-        // Hiển thị thông báo hoặc chuyển trang (logic của appState sẽ tự chuyển trang)
-        // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Chào mừng bạn đến với VnTravel!")));
+        context.push('/home');
       }
       // Xử lý lỗi trả về từ API (ví dụ email đã tồn tại)
       else {

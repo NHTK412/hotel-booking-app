@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/location/location_response.dart';
+import 'package:hotel_booking_app/data/repositories/location_repository.dart';
+import 'package:hotel_booking_app/data/service/location_service.dart';
 
 class LocationsScreen extends StatefulWidget {
   const LocationsScreen({super.key});
@@ -9,6 +13,60 @@ class LocationsScreen extends StatefulWidget {
 }
 
 class _LocationsScreenState extends State<LocationsScreen> {
+  // List<Map<String, String>> locations = [
+  //   {"district": "Bình Thạnh", "province": "Thành phố Hồ Chí Minh"},
+  //   {"district": "Phú Nhuận", "province": "Thành phố Hồ Chí Minh"},
+  //   {"district": "Quận 1", "province": "Thành phố Hồ Chí Minh"},
+  //   {"district": "Đà Lạt", "province": "Lâm Đồng"},
+  //   {"district": "Nha Trang", "province": "Khánh Hòa"},
+  //   {"district": "Vũng Tàu", "province": "Bà Rịa - Vũng Tàu"},
+  //   {"district": "Hội An", "province": "Quảng Nam"},
+  //   {"district": "Huế", "province": "Thừa Thiên Huế"},
+  // ];
+
+  List<LocationResponse> locations = [];
+
+  late bool _isLoading; // true: đang tải, false: đã tải xong
+  late String _errorMessage;
+
+  Future<void> _fetchLocations(String keyword) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      // Giả sử bạn có một hàm fetchLocationsFromApi() để lấy dữ liệu từ API
+      // locations = await fetchLocationsFromApi();
+
+      // Ví dụ tạm thời
+
+      final ApiResponse<List<LocationResponse>> response =
+          await LocationRepository(
+            LocationService(),
+          ).getLocations(keyword: keyword);
+
+      if (response.data != null) {
+        locations = response.data!;
+      } else {
+        _errorMessage = 'Không có dữ liệu địa điểm.';
+      }
+    } catch (e) {
+      _errorMessage = 'Lỗi khi tải địa điểm: $e';
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _isLoading = false;
+    _errorMessage = '';
+  }
+
   Widget headerBooking() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -41,6 +99,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
         // color: Colors.amber,
       ),
       child: TextField(
+        onSubmitted: (value) => _fetchLocations(value),
         decoration: InputDecoration(
           hintText: "Quận/Huyện, Tỉnh/Thành phố",
           hintStyle: TextStyle(color: Colors.grey[400]),
@@ -97,17 +156,6 @@ class _LocationsScreenState extends State<LocationsScreen> {
     );
   }
 
-  List<Map<String, String>> locations = [
-    {"district": "Bình Thạnh", "province": "Thành phố Hồ Chí Minh"},
-    {"district": "Phú Nhuận", "province": "Thành phố Hồ Chí Minh"},
-    {"district": "Quận 1", "province": "Thành phố Hồ Chí Minh"},
-    {"district": "Đà Lạt", "province": "Lâm Đồng"},
-    {"district": "Nha Trang", "province": "Khánh Hòa"},
-    {"district": "Vũng Tàu", "province": "Bà Rịa - Vũng Tàu"},
-    {"district": "Hội An", "province": "Quảng Nam"},
-    {"district": "Huế", "province": "Thừa Thiên Huế"},
-  ];
-
   // List<Map<String, String>> locations = [];
 
   @override
@@ -153,7 +201,9 @@ class _LocationsScreenState extends State<LocationsScreen> {
               const SizedBox(height: 20),
 
               Expanded(
-                child: (locations.isEmpty)
+                child: (_isLoading)
+                    ? Center(child: CircularProgressIndicator())
+                    : (locations.isEmpty)
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -178,7 +228,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
                         itemBuilder: (context, index) {
                           return ListTile(
                             onTap: () => context.pop(
-                              "${locations[index]['district']}, ${locations[index]['province']}",
+                              // "${locations[index]['district']}, ${locations[index]['province']}",
+                              "${locations[index].districtName}, ${locations[index].provinceName}",
                             ),
                             leading: Icon(
                               Icons.location_on_outlined,
@@ -187,8 +238,10 @@ class _LocationsScreenState extends State<LocationsScreen> {
                             // title: Text(
                             //   "${locations[index]['district']}, ${locations[index]['province']}",
                             // ),
-                            title: Text("${locations[index]['district']}"),
-                            subtitle: Text("${locations[index]['province']}"),
+                            // title: Text("${locations[index]['district']}"),
+                            title: Text("${locations[index].districtName}"),
+                            // subtitle: Text("${locations[index]['province']}"),
+                            subtitle: Text("${locations[index].provinceName}"),
                             trailing: Icon(Icons.arrow_forward_ios, size: 16),
                           );
                         },

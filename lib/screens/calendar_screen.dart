@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/data/model/booking/booking_summary.dart';
+import 'package:hotel_booking_app/data/repositories/booking_repostiory.dart';
+import 'package:hotel_booking_app/data/service/booking_service.dart';
+import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
-
-// import 'package:hotel_booking_app/models/booking_detail.dart';
-import 'package:hotel_booking_app/screens/calendar_detail_screen.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
+// Import Repository của bạn
+// import 'package:hotel_booking_app/data/repository/booking_repository.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -16,48 +18,97 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  // Khởi tạo giá trị mặc định để tránh lỗi Null
+  final BookingRepository _bookingRepository = BookingRepository(
+    bookingService: BookingService(),
+  );
+
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // Giả lập danh sách dữ liệu từ Backend
-  final List<BookingDetail> _allBookings = [
-    BookingDetail(
-      bookingId: 3,
-      checkInAt: DateTime.parse("2026-01-08"),
-      checkOutAt: DateTime.parse("2026-01-10"),
-      customerEmail: "khang@gmail.com",
-      customerName: "Nguyễn Hữu Tuấn Khang",
-      customerPhone: "058205002155",
-      discountedPrice: 0.1,
-      finalPrice: 100000,
-      originalPrice: 100000,
-      status: BookingStatusEnum.peding,
-    ),
-  ];
+  // LIST 1: Dùng để hiện dấu chấm trên lịch (Lấy theo Tháng)
+  List<BookingSummary> _monthEvents = [];
+
+  // LIST 2: Dùng để hiện danh sách chi tiết bên dưới (Lấy theo Ngày)
+  List<BookingSummary> _selectedDayBookings = [];
+
+  bool _isLoadingList = false; // Loading cho phần danh sách dưới
 
   @override
   void initState() {
     super.initState();
-    // Đảm bảo _selectedDay có giá trị ngay từ đầu
     _selectedDay = _focusedDay;
+
+    // 1. Lấy dữ liệu tổng quan cho tháng hiện tại (để hiện chấm)
+    _fetchMonthBookings(_focusedDay);
+
+    // 2. Lấy chi tiết đơn của ngày hôm nay (để hiện list)
+    _fetchDayBookings(_focusedDay);
   }
 
-  List<BookingDetail> _getFilteredBookings(DateTime day) {
-    return _allBookings
+  // --- API 1: Lấy dữ liệu theo THÁNG (để hiện Marker trên lịch) ---
+  Future<void> _fetchMonthBookings(DateTime date) async {
+    try {
+      final response = await _bookingRepository.getBookingByMe(
+        // month: date.month,
+        // year: date.year,
+        month: 1,
+        year: 2026,
+        size: 100, // Lấy số lượng lớn để bao phủ cả tháng
+        status: BookingStatusEnum
+            .wattingForPayment, // Chỉ lấy các booking đang chờ xử lý
+      );
+
+      setState(() {
+        _monthEvents = response.data ?? [];
+      });
+    } catch (e) {
+      debugPrint("Lỗi lấy dữ liệu tháng: $e");
+    }
+  }
+
+  // --- API 2: Lấy dữ liệu theo NGÀY (để hiện List bên dưới) ---
+  Future<void> _fetchDayBookings(DateTime date) async {
+    setState(() {
+      _isLoadingList = true;
+      _selectedDayBookings = []; // Clear list cũ trước khi load mới
+    });
+
+    try {
+      debugPrint(
+        "Fetching bookings for day: ${date.day}-${date.month}-${date.year}",
+      );
+      final response = await _bookingRepository.getBookingByMe(
+        day: date.day, // Truyền thêm Day
+        month: date.month,
+        year: date.year,
+        size: 50,
+        status: BookingStatusEnum.wattingForPayment,
+      );
+
+      setState(() {
+        _selectedDayBookings = response.data ?? [];
+      });
+    } catch (e) {
+      debugPrint("Lỗi lấy dữ liệu ngày: $e");
+    } finally {
+      setState(() {
+        _isLoadingList = false;
+      });
+    }
+  }
+
+  // Hàm filter local dùng cho eventLoader của TableCalendar
+  // Nó lấy từ _monthEvents để quyết định ngày nào có dấu chấm
+  List<BookingSummary> _getEventsForDay(DateTime day) {
+    return _monthEvents
         .where((booking) => isSameDay(booking.checkInAt, day))
         .toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Sử dụng toán tử ?? để tránh null khi lọc
-    final selectedBookings = _getFilteredBookings(
-      _selectedDay ?? DateTime.now(),
-    );
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Màu nền sáng chuyên nghiệp
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Column(
           children: [
@@ -67,7 +118,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             _buildCalendarCard(),
             const SizedBox(height: 20),
             _buildListHeader(),
-            Expanded(child: _buildBookingList(selectedBookings)),
+
+            // Hiển thị loading riêng cho phần list hoặc hiển thị danh sách
+            Expanded(
+              child: _isLoadingList
+                  ? const Center(child: CircularProgressIndicator())
+                  : _buildBookingList(_selectedDayBookings),
+            ),
           ],
         ),
       ),
@@ -108,11 +165,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
         lastDay: DateTime.utc(2030, 12, 31),
         focusedDay: _focusedDay,
         selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+
+        // Cấu hình Header
         headerStyle: const HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
           titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
+
+        // Cấu hình Style
         calendarStyle: CalendarStyle(
           markerDecoration: const BoxDecoration(
             color: Colors.orange,
@@ -132,19 +193,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+
+        // 1. Khi chọn ngày -> Gọi API lấy chi tiết ngày đó
         onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            _selectedDay = selectedDay;
-            _focusedDay = focusedDay;
-          });
+          if (!isSameDay(_selectedDay, selectedDay)) {
+            setState(() {
+              _selectedDay = selectedDay;
+              _focusedDay = focusedDay;
+            });
+            // Gọi API lấy list chi tiết cho ngày được chọn
+            _fetchDayBookings(selectedDay);
+          }
         },
-        eventLoader: _getFilteredBookings,
+
+        // 2. Khi lướt qua tháng mới -> Gọi API lấy dữ liệu marker cho tháng đó
+        onPageChanged: (focusedDay) {
+          _focusedDay = focusedDay;
+          _fetchMonthBookings(focusedDay);
+        },
+
+        // 3. Load dấu chấm từ dữ liệu tháng (_monthEvents)
+        eventLoader: _getEventsForDay,
       ),
     );
   }
 
   Widget _buildListHeader() {
-    // Sửa lỗi ở đây: Sử dụng toán tử ?? để đảm bảo không bị crash nếu _selectedDay null
     String dateLabel = DateFormat(
       'dd MMMM, yyyy',
     ).format(_selectedDay ?? DateTime.now());
@@ -171,12 +245,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ],
           ),
           TextButton.icon(
-            // onPressed: () => Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => const CalendarDetailScreen(),
-            //   ),
-            // ),
             onPressed: () => context.push("/calendar_detail"),
             icon: const Icon(Icons.list_alt, size: 18),
             label: const Text("Tất cả"),
@@ -186,7 +254,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildBookingList(List<BookingDetail> bookings) {
+  Widget _buildBookingList(List<BookingSummary> bookings) {
     if (bookings.isEmpty) {
       return Center(
         child: Column(
@@ -214,7 +282,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildBookingItem(BookingDetail booking) {
+  Widget _buildBookingItem(BookingSummary booking) {
+    // (Code UI Item giữ nguyên như cũ)
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -277,18 +346,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  // --- Các hàm Helper UI ---
   Color _getStatusColor(BookingStatusEnum status) {
     switch (status) {
-      case BookingStatusEnum.peding:
-        return Colors.orange;
+      case BookingStatusEnum.pending:
+        return const Color(0xFFF57C00); // Muted orange
       case BookingStatusEnum.checkIn:
-        return Colors.blue;
+        return const Color(0xFF1976D2); // Muted blue
       case BookingStatusEnum.checkedOut:
-        return Colors.green;
+        return const Color(0xFF388E3C); // Muted green
       case BookingStatusEnum.canceled:
-        return Colors.red;
+        return const Color(0xFFD32F2F); // Muted red
       case BookingStatusEnum.wattingForPayment:
-        return Colors.yellow;
+        return const Color(0xFFFBC02D); // Muted yellow
     }
   }
 
@@ -309,7 +379,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   IconData _getIconData(BookingStatusEnum status) {
     switch (status) {
-      case BookingStatusEnum.peding:
+      case BookingStatusEnum.pending:
         return Icons.access_time_rounded;
       case BookingStatusEnum.checkIn:
         return Icons.login_rounded;

@@ -17,6 +17,7 @@ class _FavoriteHotelScreenState extends State<FavoriteHotelScreen> {
   List<AccommodationSummary> accommodations = [];
   bool isLoading = true; // Mặc định là đang load
   String? error;
+  bool _isUpdatingFavorite = false;
 
   @override
   void initState() {
@@ -148,8 +149,44 @@ class _FavoriteHotelScreenState extends State<FavoriteHotelScreen> {
                       backgroundColor: Colors.white.withOpacity(0.9),
                       child: IconButton(
                         icon: const Icon(Icons.favorite, color: Colors.red),
-                        onPressed: () {
-                          // Logic xóa khỏi yêu thích
+                        onPressed: () async {
+                          if (_isUpdatingFavorite) return;
+
+                          setState(() => _isUpdatingFavorite = true);
+                          try {
+                            await AccommodationRepository(
+                              AccommodationService(),
+                            ).updateFavoriteByAccommondationId(
+                              hotel.accommodationId!,
+                              false,
+                            );
+
+                            setState(() {
+                              accommodations.removeWhere(
+                                (item) =>
+                                    item.accommodationId ==
+                                    hotel.accommodationId,
+                              );
+                              _isUpdatingFavorite = false;
+                            });
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "${hotel.accommodationName} đã được xóa khỏi yêu thích",
+                                ),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          } catch (e) {
+                            setState(() => _isUpdatingFavorite = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Lỗi: $e"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),
@@ -229,8 +266,7 @@ class _FavoriteHotelScreenState extends State<FavoriteHotelScreen> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text:
-                                    "${hotel.getMinPricePerNightToString()} VNĐ",
+                                text: "${hotel.getFinalPriceToString()} VNĐ",
                                 style: const TextStyle(
                                   color: Colors.blue,
                                   fontWeight: FontWeight.bold,

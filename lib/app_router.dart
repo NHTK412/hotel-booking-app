@@ -10,10 +10,12 @@ import 'package:hotel_booking_app/screens/hotel_list_screen.dart';
 import 'package:hotel_booking_app/screens/locations_screen.dart';
 import 'package:hotel_booking_app/screens/login_screen.dart';
 import 'package:hotel_booking_app/screens/main_menu_screen.dart';
+import 'package:hotel_booking_app/screens/map_screen.dart';
 import 'package:hotel_booking_app/screens/otp_verification_screen.dart';
 import 'package:hotel_booking_app/screens/payment_screen.dart';
 import 'package:hotel_booking_app/screens/profile_screen.dart';
 import 'package:hotel_booking_app/screens/register_screen.dart';
+import 'package:hotel_booking_app/screens/reset_password_screen.dart';
 import 'package:hotel_booking_app/screens/room_detail_screen.dart';
 import 'package:hotel_booking_app/screens/search_hotel_screen.dart';
 
@@ -42,6 +44,14 @@ class AppRouter {
           final String email = state.uri.queryParameters['email'] ?? '';
 
           return OtpVerificationScreen(email: email); // Th
+        },
+      ),
+      GoRoute(
+        path: "/reset-password",
+        builder: (context, state) {
+          // final String email = state.uri.queryParameters['email'] ?? '';
+
+          return ResetPasswordScreen(); // Th
         },
       ),
       GoRoute(
@@ -115,6 +125,8 @@ class AppRouter {
         builder: (context, state) => CalendarDetailScreen(),
       ),
 
+      GoRoute(path: "/map", builder: (context, state) => const MapScreen()),
+
       // StatefulShellRoute cho bottom navigation
       // StatefulShellRoute.indexedStack(
       // Không dùng indexdStack
@@ -171,6 +183,7 @@ class AppRouter {
 class BookingParams {
   final int roomTypeId;
   final double originalPrice;
+  final double discountedPrice;
   final String accommodationName;
   final String roomTypeName;
   final String? customerName;
@@ -185,6 +198,7 @@ class BookingParams {
     required this.roomTypeId,
     required this.originalPrice,
     required this.accommodationName,
+    required this.discountedPrice,
     required this.roomTypeName,
     this.customerName,
     this.customerPhone,
@@ -217,6 +231,7 @@ class BookingParams {
       checkOutDate: checkOutDate ?? this.checkOutDate,
       checkInTime: checkInTime ?? this.checkInTime,
       checkOutTime: checkOutTime ?? this.checkOutTime,
+      discountedPrice: discountedPrice,
     );
   }
 
@@ -232,6 +247,7 @@ class BookingParams {
       originalPrice: double.tryParse(qp['originalPrice'] ?? '') ?? 0.0,
       accommodationName: qp['accommodationName'] ?? '',
       roomTypeName: qp['roomTypeName'] ?? '',
+      discountedPrice: double.tryParse(qp['discountedPrice'] ?? '') ?? 0.0,
     );
   }
 }

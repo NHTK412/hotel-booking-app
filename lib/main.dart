@@ -24,6 +24,9 @@ void main() async {
   // final appState = AppState.instance;
   // await appState.loadToken();
 
+  // final pref = await SharedPreferences.getInstance();
+
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppState.instance..loadToken(),

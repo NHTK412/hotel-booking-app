@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 enum BookingStatusEnum {
   // chờ nhận phòng
-  peding("Chờ nhận phòng", Colors.orange),
+  pending("Chờ nhận phòng", Colors.orange),
   // đã nhận phòng
   checkIn("Đã nhận phòng", Colors.green),
   // đã trả phòng
@@ -19,7 +19,7 @@ enum BookingStatusEnum {
   static BookingStatusEnum fromJson(String status) {
     switch (status) {
       case 'PENDING':
-        return BookingStatusEnum.peding;
+        return BookingStatusEnum.pending;
       case 'CHECKED_IN':
         return BookingStatusEnum.checkIn;
       case 'CHECKED_OUT':
@@ -31,5 +31,16 @@ enum BookingStatusEnum {
       default:
         throw Exception('Unknown booking status: $status');
     }
+  }
+
+  // toJson
+  String toJson() {
+    return switch (this) {
+      BookingStatusEnum.pending => 'PENDING',
+      BookingStatusEnum.checkIn => 'CHECKED_IN',
+      BookingStatusEnum.checkedOut => 'CHECKED_OUT',
+      BookingStatusEnum.canceled => 'CANCELED',
+      BookingStatusEnum.wattingForPayment => 'WAITING_FOR_PAYMENT',
+    };
   }
 }
