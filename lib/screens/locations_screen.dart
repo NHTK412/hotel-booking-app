@@ -1,9 +1,13 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
 import 'package:hotel_booking_app/data/model/location/location_response.dart';
 import 'package:hotel_booking_app/data/repositories/location_repository.dart';
 import 'package:hotel_booking_app/data/service/location_service.dart';
+import 'package:hotel_booking_app/data/service/location_servider.dart';
 
 class LocationsScreen extends StatefulWidget {
   const LocationsScreen({super.key});
@@ -127,6 +131,12 @@ class _LocationsScreenState extends State<LocationsScreen> {
     );
   }
 
+  String? toNullIfBlank(String? value) {
+    if (value == null) return null;
+    if (value.trim().isEmpty) return null;
+    return value.trim();
+  }
+
   Widget _buildButton() {
     return SizedBox(
       width: double.infinity,
@@ -143,7 +153,85 @@ class _LocationsScreenState extends State<LocationsScreen> {
           ),
           // side: BorderSide(color: Colors.grey.shade300),
         ),
-        onPressed: () {},
+        onPressed: () async {
+          setState(() {
+            _isLoading = true;
+          });
+
+          try {
+            final Position position =
+                await LocationServider.getCurrentLocation();
+
+            double latitude = position.latitude;
+            double longitude = position.longitude;
+
+            List<Placemark> placemarks = await placemarkFromCoordinates(
+              latitude,
+              longitude,
+            );
+
+            Placemark place = placemarks.first;
+
+            String? sub =
+                toNullIfBlank(place.subAdministrativeArea) ??
+                toNullIfBlank(place.locality);
+
+            String? ad = toNullIfBlank(
+              place.administrativeArea == "Bình Dương"
+                  ? "Hồ Chí Minh"
+                  : place.administrativeArea,
+            );
+
+            if (ad != null) {
+              ad = ad.replaceAll(RegExp(r'^(Tỉnh|Thành phố)\s*'), '');
+            }
+
+            debugPrint("subAdministrativeArea: $sub");
+            debugPrint("administrativeArea: $ad");
+
+            Map<String, dynamic> queryParameters = {
+              "subAdministrativeArea": sub,
+              "administrativeArea": ad,
+            };
+
+            queryParameters.removeWhere((key, value) => value == null);
+
+            final response = await Dio().get(
+              "https://bilateral-misunderstandingly-veola.ngrok-free.dev/api/locations/me",
+              queryParameters: queryParameters,
+              options: Options(
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization":
+                      "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuZ3V5ZW5odXV0dWFua2hhbmc0MTJAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfQ1VTVE9NRVIiLCJpYXQiOjE3Njg5NzkyMTIsImV4cCI6MTc2OTU4NDAxMn0.6MyZO7MQJw_5i4h0SPdbQ98DWg2nyGDWbQK5cr9P1H4",
+                },
+              ),
+            );
+
+            final data = response.data['data'];
+
+            if (data == null) {
+              throw Exception("API trả data null");
+            }
+
+            String label = "${data['districtName']}, ${data['provinceName']}";
+
+            if (!mounted) return;
+
+            context.pop({'label': label, 'locationId': data['locationId']});
+          } on DioException catch (e) {
+            debugPrint("Lỗi API: ${e.response?.data ?? e.message}");
+          } catch (e, stackTrace) {
+            debugPrint("Lỗi không xác định: $e");
+            debugPrintStack(stackTrace: stackTrace);
+          } finally {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+          }
+        },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
@@ -227,10 +315,12 @@ class _LocationsScreenState extends State<LocationsScreen> {
                     : ListView.separated(
                         itemBuilder: (context, index) {
                           return ListTile(
-                            onTap: () => context.pop(
-                              // "${locations[index]['district']}, ${locations[index]['province']}",
-                              "${locations[index].districtName}, ${locations[index].provinceName}",
-                            ),
+                            onTap: () => context.pop({
+                              'label':
+                                  "${locations[index].districtName}, ${locations[index].provinceName}",
+                              'locationId': locations[index].locationId ?? 1,
+                            }),
+
                             leading: Icon(
                               Icons.location_on_outlined,
                               color: Colors.blueAccent,

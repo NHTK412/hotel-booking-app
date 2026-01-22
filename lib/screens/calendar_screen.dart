@@ -54,8 +54,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         month: 1,
         year: 2026,
         size: 100, // Lấy số lượng lớn để bao phủ cả tháng
-        status: BookingStatusEnum
-            .wattingForPayment, // Chỉ lấy các booking đang chờ xử lý
+        status: BookingStatusEnum.pending, // Chỉ lấy các booking đang chờ xử lý
       );
 
       setState(() {
@@ -82,7 +81,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         month: date.month,
         year: date.year,
         size: 50,
-        status: BookingStatusEnum.wattingForPayment,
+        status: BookingStatusEnum.pending,
       );
 
       setState(() {
@@ -332,7 +331,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                "${booking.status.name}",
+                "${booking.status.toString()}",
                 style: TextStyle(
                   fontSize: 11,
                   color: _getStatusColor(booking.status),
@@ -357,7 +356,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return const Color(0xFF388E3C); // Muted green
       case BookingStatusEnum.canceled:
         return const Color(0xFFD32F2F); // Muted red
-      case BookingStatusEnum.wattingForPayment:
+      case BookingStatusEnum.waitingForPayment:
         return const Color(0xFFFBC02D); // Muted yellow
     }
   }
@@ -387,7 +386,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return Icons.logout_rounded;
       case BookingStatusEnum.canceled:
         return Icons.cancel_outlined;
-      case BookingStatusEnum.wattingForPayment:
+      case BookingStatusEnum.waitingForPayment:
         return Icons.payment_rounded;
     }
   }

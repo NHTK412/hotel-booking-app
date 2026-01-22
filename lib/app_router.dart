@@ -16,6 +16,7 @@ import 'package:hotel_booking_app/screens/payment_screen.dart';
 import 'package:hotel_booking_app/screens/profile_screen.dart';
 import 'package:hotel_booking_app/screens/register_screen.dart';
 import 'package:hotel_booking_app/screens/reset_password_screen.dart';
+import 'package:hotel_booking_app/screens/review_detail_screen.dart';
 import 'package:hotel_booking_app/screens/room_detail_screen.dart';
 import 'package:hotel_booking_app/screens/search_hotel_screen.dart';
 
@@ -71,6 +72,14 @@ class AppRouter {
           final int roomTypeId = int.parse(state.pathParameters['roomTypeId']!);
 
           return RoomDetailScreen(roomTypeId: roomTypeId);
+        },
+      ),
+
+      GoRoute(
+        path: "/reviews",
+        builder: (context, state) {
+          final int roomTypeId = state.extra as int;
+          return ReviewDetailScreen(roomTypeId: roomTypeId);
         },
       ),
 

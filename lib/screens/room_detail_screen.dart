@@ -4,9 +4,12 @@ import 'package:hotel_booking_app/app_router.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:hotel_booking_app/data/enum/amenity_enum.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/model/review/review_summary.dart';
 import 'package:hotel_booking_app/data/model/roomtype/room_type_detail.dart';
 // import 'package:hotel_booking_app/data/model/roomtype/room_type_detail.dart'; // Sử dụng class model ở trên
+import 'package:hotel_booking_app/data/repositories/review_repository.dart';
 import 'package:hotel_booking_app/data/repositories/room_type_repository.dart';
+import 'package:hotel_booking_app/data/service/review_service.dart';
 import 'package:hotel_booking_app/data/service/room_type_service.dart';
 import 'package:hotel_booking_app/screens/booking_screen.dart';
 import 'package:readmore/readmore.dart';
@@ -94,7 +97,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                           if (roomTypeDetail.imagesPreview.isNotEmpty)
                             DetailPreview(images: roomTypeDetail.imagesPreview),
                           const SizedBox(height: 25),
-                          const ReviewSection(),
+                          ReviewSection(roomTypeId: widget.roomTypeId),
                         ],
                       ),
                     ),
@@ -459,8 +462,32 @@ class DetailPreview extends StatelessWidget {
   }
 }
 
-class ReviewSection extends StatelessWidget {
-  const ReviewSection({Key? key}) : super(key: key);
+class ReviewSection extends StatefulWidget {
+  final int roomTypeId;
+
+  const ReviewSection({Key? key, required this.roomTypeId}) : super(key: key);
+
+  @override
+  State<ReviewSection> createState() => _ReviewSectionState();
+}
+
+class _ReviewSectionState extends State<ReviewSection> {
+  late Future<ApiResponse<List<ReviewSummary>>> _reviewsFuture;
+  final ReviewRepository _reviewRepository = ReviewRepository(
+    reviewService: ReviewService(),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    // Gọi API lấy 5 review đầu tiên
+    _reviewsFuture = _reviewRepository.fetchReviews(
+      roomType: widget.roomTypeId,
+      page: 0,
+      size: 5,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -474,7 +501,10 @@ class ReviewSection extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                // Chuyển đến màn hình xem tất cả review
+                context.push('/reviews', extra: widget.roomTypeId);
+              },
               child: const Text(
                 "Xem tất cả",
                 style: TextStyle(color: Color(0xFF64BCE3)),
@@ -482,21 +512,61 @@ class ReviewSection extends StatelessWidget {
             ),
           ],
         ),
-        // Hardcode review example
-        _buildReviewItem(
-          "Nguyễn Văn A",
-          "https://i.pinimg.com/originals/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg",
-          5,
-          "Phòng sạch đẹp, nhân viên thân thiện.",
-          "12/10/2025",
+        FutureBuilder<ApiResponse<List<ReviewSummary>>>(
+          future: _reviewsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.all(20),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasError) {
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(child: Text('Lỗi: ${snapshot.error}')),
+              );
+            } else if (snapshot.hasData && snapshot.data?.data != null) {
+              final reviews = snapshot.data!.data ?? [];
+
+              if (reviews.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Center(child: Text('Chưa có nhận xét')),
+                );
+              }
+
+              return Column(
+                children: reviews
+                    .map(
+                      (review) => _buildReviewItem(
+                        review.userFullName,
+                        review.userImage,
+                        review.rating,
+                        review.comment,
+                        _formatDate(review.createdAt),
+                      ),
+                    )
+                    .toList(),
+              );
+            } else {
+              return const Padding(
+                padding: EdgeInsets.all(20),
+                child: Center(child: Text('Không có dữ liệu')),
+              );
+            }
+          },
         ),
       ],
     );
   }
 
+  String _formatDate(DateTime dateTime) {
+    return DateFormat('dd/MM/yyyy').format(dateTime);
+  }
+
   Widget _buildReviewItem(
     String name,
-    String avatar,
+    String? avatar,
     int rating,
     String comment,
     String date,
@@ -514,7 +584,16 @@ class ReviewSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(backgroundImage: NetworkImage(avatar), radius: 20),
+              CircleAvatar(
+                backgroundImage: avatar != null && avatar.isNotEmpty
+                    ? NetworkImage('${AppConfig.baseUrl}images/$avatar')
+                    : null,
+                radius: 20,
+                backgroundColor: Colors.grey[300],
+                child: avatar == null || avatar.isEmpty
+                    ? const Icon(Icons.person, color: Colors.grey)
+                    : null,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

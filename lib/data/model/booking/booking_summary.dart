@@ -15,6 +15,7 @@ class BookingSummary {
   final double finalPrice;
   final BookingStatusEnum status;
   final DateTime? checkInAt;
+  final DateTime? checkOutAt;
 
   BookingSummary({
     required this.bookingId,
@@ -24,6 +25,7 @@ class BookingSummary {
     required this.finalPrice,
     required this.status,
     this.checkInAt,
+    this.checkOutAt,
   });
 
   factory BookingSummary.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,9 @@ class BookingSummary {
       status: BookingStatusEnum.fromJson(json['status']),
       checkInAt: json['checkInAt'] != null
           ? DateTime.parse(json['checkInAt'])
+          : null,
+      checkOutAt: json['checkOutAt'] != null
+          ? DateTime.parse(json['checkOutAt'])
           : null,
     );
   }

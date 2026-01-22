@@ -58,7 +58,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
             }
 
             // 2️⃣ zalopay:// hoặc zalo://
-            if (uri.scheme == 'zalopay' || uri.scheme == 'zalo') {
+            if (uri.scheme == 'zalopay' ||
+                uri.scheme == 'zalo' ||
+                uri.scheme == "hotelbooking") {
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               } else {
@@ -68,7 +70,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 );
               }
 
-              return NavigationDecision.prevent;
+              return NavigationDecision.prevent; // Ngăn WebView xử lý
             }
 
             // 3️⃣ market://
@@ -93,7 +95,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
         title: const Text('WebView'),
         centerTitle: true,
         leading: IconButton(
-          onPressed: () => context.go("/home"),
+          // onPressed: () => context.go("/home"),
+          onPressed: () {
+            context.go("/calendar");
+            context.push("/calendar_detail");
+          },
           icon: const Icon(Icons.arrow_back_ios_new),
         ),
       ),

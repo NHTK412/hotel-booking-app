@@ -9,7 +9,7 @@ enum BookingStatusEnum {
   checkedOut("Đã trả phòng", Colors.blue),
   // đã hủy
   canceled("Đã hủy", Colors.red),
-  wattingForPayment("Chờ thanh toán", Colors.yellow);
+  waitingForPayment("Chờ thanh toán", Colors.yellow);
 
   final String value;
   final Color color;
@@ -27,10 +27,14 @@ enum BookingStatusEnum {
       case 'CANCELED':
         return BookingStatusEnum.canceled;
       case 'WAITING_FOR_PAYMENT':
-        return BookingStatusEnum.wattingForPayment;
+        return BookingStatusEnum.waitingForPayment;
       default:
         throw Exception('Unknown booking status: $status');
     }
+  }
+
+  String toString() {
+    return value;
   }
 
   // toJson
@@ -40,7 +44,7 @@ enum BookingStatusEnum {
       BookingStatusEnum.checkIn => 'CHECKED_IN',
       BookingStatusEnum.checkedOut => 'CHECKED_OUT',
       BookingStatusEnum.canceled => 'CANCELED',
-      BookingStatusEnum.wattingForPayment => 'WAITING_FOR_PAYMENT',
+      BookingStatusEnum.waitingForPayment => 'WAITING_FOR_PAYMENT',
     };
   }
 }

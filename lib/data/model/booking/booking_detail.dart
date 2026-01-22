@@ -22,6 +22,19 @@ class BookingDetail {
   final double finalPrice;
   final double originalPrice;
   final BookingStatusEnum status;
+  
+
+    //   "roomNumber": "P102 - Deluxe",
+    // "roomType": "Deluxe Ocean View",
+    // "status": "WAITING_FOR_PAYMENT"
+
+    final String roomNumber;
+    final String roomType;
+    final String accommodationName;
+    final double lat;
+    final double lng;
+
+    final int reviewId;
 
   BookingDetail({
     required this.bookingId,
@@ -34,6 +47,12 @@ class BookingDetail {
     required this.finalPrice,
     required this.originalPrice,
     required this.status,
+    required this.roomNumber,
+    required this.roomType,
+    required this.accommodationName,
+    required this.lat,
+    required this.lng,
+    required this.reviewId,
   });
 
   factory BookingDetail.fromJson(Map<String, dynamic> json) {
@@ -48,6 +67,12 @@ class BookingDetail {
       finalPrice: (json['finalPrice'] as num).toDouble(),
       originalPrice: (json['originalPrice'] as num).toDouble(),
       status: BookingStatusEnum.fromJson(json['status']),
+      roomNumber: json['roomNumber'],
+      roomType: json['roomType'],
+      accommodationName: json['accommodationName'],
+      lat: (json['lat'] as num).toDouble(),
+      lng: (json['lng'] as num).toDouble(),
+      reviewId: json['reviewId'] ?? 0,
     );
   }
 }

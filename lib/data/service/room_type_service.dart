@@ -14,8 +14,9 @@ class RoomTypeService {
   }
 
   Future<Response> getAllRoomTypes({
-    String? district,
-    String? city,
+    // String? district,
+    // String? city,
+    int? locationId,
     String? checkInDate,
     String? checkOutDate,
     int? capacity,
@@ -25,8 +26,9 @@ class RoomTypeService {
   }) async {
     try {
       final queryParams = {
-        'district': district,
-        'city': city,
+        // 'district': district,
+        // 'city': city,
+        'locationId':  locationId,
         'checkInDate': checkInDate,
         'checkOutDate': checkOutDate,
         'capacity': capacity,

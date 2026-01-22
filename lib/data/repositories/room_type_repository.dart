@@ -27,8 +27,9 @@ class RoomTypeRepository {
   }
 
   Future<ApiResponse<List<RoomTypeSummary>>> getAllRoomTypes({
-    String? district,
-    String? city,
+    // String? district,
+    // String? city,
+    int? locationId,
     String? checkInDate,
     String? checkOutDate,
     int? capacity,
@@ -38,8 +39,9 @@ class RoomTypeRepository {
   }) async {
     try {
       final Response response = await _roomTypeService.getAllRoomTypes(
-        district: district,
-        city: city,
+        // district: district,
+        // city: city,
+        locationId: locationId,
         checkInDate: checkInDate,
         checkOutDate: checkOutDate,
         capacity: capacity,

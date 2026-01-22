@@ -51,4 +51,22 @@ class BookingService {
       rethrow;
     }
   }
+
+  Future<Response> getBookingDetailById(int bookingId) async {
+    try {
+      final response = await dio.get('/bookings/$bookingId');
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> cancelBookingById(int bookingId) async {
+    try {
+      final response = await dio.patch('/bookings/$bookingId/cancel');
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -20,6 +20,8 @@ class FilterHotelScreen extends StatefulWidget {
 class _FilterHotelScreenState extends State<FilterHotelScreen> {
   late String _location;
 
+  late int _locationId;
+
   late List<RoomTypeSummary> roomTypes;
 
   final RoomTypeService _roomTypeService = RoomTypeService();
@@ -41,6 +43,8 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
   void initState() {
     super.initState();
     _location = "Khách sạn gần bạn";
+
+    _locationId = 0;
 
     // roomTypes = [
     //   RoomTypeSummary(
@@ -121,8 +125,9 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
             checkOutDate: checkOutDate,
             capacity: capacity,
             bedrooms: bedrooms,
-            city: city,
-            district: district,
+            // city: city,
+            // district: district,
+            locationId: _locationId,
           );
 
       roomTypes = apiResponse.data ?? [];
@@ -391,11 +396,17 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
                   label: "Điểm đến, khách sạn",
                   value: _location,
                   onTap: () async {
-                    final String? locationSelect = await context.push(
+                    // final String? locationSelect = await context.push(
+                    //   "/locations",
+                    // );
+
+                    final Map<String, dynamic>? result = await context.push(
                       "/locations",
                     );
-                    if (locationSelect != null) {
-                      setState(() => _location = locationSelect);
+
+                    if (result != null) {
+                      _locationId = result['locationId'];
+                      setState(() => _location = result['label']);
                     }
                   },
                 ),

@@ -9,6 +9,8 @@ class AccommodationSummary {
   final double? minPricePerNight; // Giá gốc
   final double? discountMinPricePerNight; // % Giảm giá (Ví dụ: 20 tức là 20%)
   final double? averageRating;
+  final double? lat;
+  final double? lng;
 
   AccommodationSummary({
     required this.accommodationId,
@@ -19,6 +21,8 @@ class AccommodationSummary {
     required this.minPricePerNight,
     required this.averageRating,
     required this.discountMinPricePerNight,
+    required this.lat,
+    required this.lng,
   });
 
   factory AccommodationSummary.fromJson(Map<String, dynamic> json) {
@@ -31,6 +35,8 @@ class AccommodationSummary {
       minPricePerNight: (json['minPricePerNight'] as num?)?.toDouble(),
       averageRating: (json['averageRating'] as num?)?.toDouble(),
       discountMinPricePerNight: (json['discountMinPricePerNight'] as num?)?.toDouble(),
+      lat: (json['lat'] as num?)?.toDouble(),
+      lng: (json['lng'] as num?)?.toDouble(),
     );
   }
 
