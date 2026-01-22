@@ -21,4 +21,32 @@ class UserService {
       rethrow;
     }
   }
+
+  Future<Response> updateCurrentUser({
+    required String name,
+    required String phone,
+    required String email,
+    required String gender,
+    required DateTime birthday,
+    required String address,
+    required String avatarUrl,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/users/me',
+        data: {
+          'name': name,
+          'phone': phone,
+          'email': email,
+          'gender': gender,
+          'birthday': birthday.toIso8601String(),
+          'address': address,
+          'avatarUrl': avatarUrl,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

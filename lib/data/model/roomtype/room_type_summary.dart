@@ -12,6 +12,7 @@ class RoomTypeSummary {
   final int? star;
   final double? price;
   final String? image;
+  final double? discount;
 
   RoomTypeSummary({
     required this.roomTypeId,
@@ -19,6 +20,7 @@ class RoomTypeSummary {
     required this.star,
     required this.price,
     required this.image,
+    required this.discount,
   });
 
   factory RoomTypeSummary.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class RoomTypeSummary {
       star: json['star'] as int?,
       price: json['price'] as double?,
       image: json['image'] as String?,
+      discount: json['discount'] as double?,
     );
   }
 
@@ -38,5 +41,34 @@ class RoomTypeSummary {
   @override
   String toString() {
     return 'RoomTypeSummary{roomTypeId: $roomTypeId, name: $name, star: $star, price: $price, image: $image}';
+  }
+
+  // 1. Kiểm tra có giảm giá không
+  bool get hasDiscount {
+    return discount != null && discount! > 0;
+  }
+
+  // 2. Lấy label giảm giá (VD: -20%)
+  String getDiscountLabel() {
+    if (!hasDiscount) return "";
+    String percent = discount.toString().replaceAll(
+      RegExp(r"([.]*0)(?!.*\d)"), // loại bỏ các số 0 không cần thiết ở cuối
+      "",
+    );
+    return "-$percent%";
+  }
+
+  // 3. Hiển thị giá gốc
+  String getOriginalPriceToString() {
+    return (price == null) ? "" : NumberFormat("#,###").format(price);
+  }
+
+  // 4. Tính và hiển thị giá sau giảm
+  String getFinalPriceToString() {
+    double finalPrice = (price ?? 0);
+    if (hasDiscount) {
+      finalPrice = finalPrice * (1 - (discount! / 100));
+    }
+    return NumberFormat("#,###").format(finalPrice);
   }
 }

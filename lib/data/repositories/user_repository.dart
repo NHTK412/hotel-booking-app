@@ -36,4 +36,35 @@ class UserRepository {
       rethrow;
     }
   }
+
+  Future<ApiResponse<UserResponse>> updateCurrentUser({
+    required String name,
+    required String phone,
+    required String email,
+    required String gender,
+    required DateTime birthday,
+    required String address,
+    required String avatarUrl,
+  }) async {
+    try {
+      final response = await userService.updateCurrentUser(
+        name: name,
+        phone: phone,
+        email: email,
+        gender: gender,
+        birthday: birthday,
+        address: address,
+        avatarUrl: avatarUrl,
+      );
+
+      final apiResponse = ApiResponse<UserResponse>.fromJson(
+        response.statusCode,
+        response.data,
+        (data) => UserResponse.fromJson(data),
+      );
+      return apiResponse;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

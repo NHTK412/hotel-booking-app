@@ -18,9 +18,9 @@ class BookingRequest {
   final DateTime checkInDate;
   final DateTime checkOutDate;
 
-  final double originalPrice;
-  final double discountedPrice;
-  final double finalPrice;
+  // final double originalPrice;
+  // final double discountedPrice;
+  // final double finalPrice;
 
   final int roomTypeId;
 
@@ -30,9 +30,9 @@ class BookingRequest {
     required this.customerEmail,
     required this.checkInDate,
     required this.checkOutDate,
-    required this.originalPrice,
-    required this.discountedPrice,
-    required this.finalPrice,
+    // required this.originalPrice,
+    // required this.discountedPrice,
+    // required this.finalPrice,
     required this.roomTypeId,
   });
 
@@ -46,9 +46,9 @@ class BookingRequest {
           .split('T')
           .first, // Format as 'YYYY-MM-DD'
       'checkOutDate': checkOutDate.toIso8601String().split('T').first,
-      'originalPrice': originalPrice,
-      'discountedPrice': discountedPrice,
-      'finalPrice': finalPrice,
+      // 'originalPrice': originalPrice,
+      // 'discountedPrice': discountedPrice,
+      // 'finalPrice': finalPrice,
       'roomTypeId': roomTypeId,
     };
   }

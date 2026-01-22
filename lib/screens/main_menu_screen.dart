@@ -1,45 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/screens/calendar_screen.dart';
-import 'package:hotel_booking_app/screens/home_screen.dart';
-import 'package:hotel_booking_app/screens/favorite_hotel_screen.dart';
-import 'package:hotel_booking_app/screens/profile_screen.dart';
+import 'package:go_router/go_router.dart';
 
-class MainMenuScreen extends StatefulWidget {
-  const MainMenuScreen({super.key});
+class MainMenuScreen extends StatelessWidget {
+  final Widget child; // Đây là trang nội dung được GoRouter truyền vào
 
-  @override
-  State<StatefulWidget> createState() {
-    return _MainMenuScreenState();
+  const MainMenuScreen({super.key, required this.child});
+
+  // Hàm tiện ích để xácq định index dựa trên path hiện tại
+  int _calculateSelectedIndex(BuildContext context) {
+    final String location = GoRouterState.of(context).uri.path;
+    if (location == '/home') return 0;
+    if (location == '/calendar') return 1;
+    if (location == '/favorites') return 2;
+    if (location == '/profile') return 3;
+    return 0;
   }
-}
 
-// ______________________________________________________
-
-class _MainMenuScreenState extends State<MainMenuScreen> {
-  final List<Widget> page = [
-    // const Center(child: Text("Home Page")),
-    const HomeScreen(),
-    // const Center(child: Text("Calendar Page")),
-    const CalendarScreen(),
-    // const Center(child: Text("Gifts Page")),
-    const FavoriteHotelScreen(),
-    const ProfileScreen(),
-  ];
-
-  int selectedIndex = 0;
+  void _onItemTapped(int index, BuildContext context) {
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/calendar');
+        break;
+      case 2:
+        context.go('/favorites');
+        break;
+      case 3:
+        context.go('/profile');
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: page[selectedIndex],
-
+      body: child, // Hiển thị nội dung trang con ở đây
       bottomNavigationBar: BottomCustom(
-        selectedIndex: selectedIndex,
-        onItemTapped: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
+        selectedIndex: _calculateSelectedIndex(context),
+        onItemTapped: (index) => _onItemTapped(index, context),
       ),
     );
   }
@@ -137,140 +137,8 @@ class BottomCustom extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // child: AnimatedContainer(
-              //   duration: Duration(milliseconds: 100),
-              //   curve: Curves.bounceIn,
-              //   padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              //   // decoration: (selectedIndex == index)
-              //   //     ? BoxDecoration(
-              //   //         borderRadius: BorderRadius.circular(20),
-              //   //         // color: Colors.grey[200],
-              //   //         color: Color(0xFFFAF6FD),
-              //   //         // cho
-              //   //         // borderRadius: BorderRadiusGeometry.circular(10),
-              //   //       )
-              //   //     // : null,
-              //   //     : BoxDecoration(color: Colors.transparent),
-              //   decoration: BoxDecoration(
-              //     borderRadius: BorderRadius.circular(20),
-              //     // color: Colors.grey[200],
-              //     color: (selectedIndex == index)
-              //         ? Color(0xFFFAF6FD)
-              //         : Colors.transparent,
-              //     // cho
-              //     // borderRadius: BorderRadiusGeometry.circular(10),
-              //   ),
-
-              //   // : null,
-              //   child: Row(
-              //     children: [
-              //       // Icon(Icons.home, color: Color(0xFFF64BCE3)),
-              //       // Icon()
-              //       Icon(
-              //         item['icon'] as IconData,
-              //         color: (selectedIndex == index)
-              //             ? Color(0xFFF64BCE3)
-              //             : Colors.grey,
-              //       ),
-              //       if (selectedIndex == index) ...[
-              //         SizedBox(width: 5),
-              //         Text(
-              //           item['label'] as String,
-              //           style: TextStyle(color: Color(0xFFF64BCE3)),
-              //         ),
-              //       ],
-              //     ],
-              //   ),
-              // ),
             );
           }),
-          // Container(child: ,)
-          // GestureDetector(
-          //   child: Container(
-          //     padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          //     decoration: BoxDecoration(
-          //       borderRadius: BorderRadius.circular(20),
-          //       // color: Colors.grey[200],
-          //       color: Color(0xFFFAF6FD),
-          //       // cho
-          //       // borderRadius: BorderRadiusGeometry.circular(10),
-          //     ),
-          //     child: Row(
-          //       children: [
-          //         Icon(Icons.home, color: Color(0xFFF64BCE3)),
-          //         SizedBox(width: 5),
-          //         Text('Home', style: TextStyle(color: Color(0xFFF64BCE3))),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-
-          // GestureDetector(
-          //   child: Container(
-          //     padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          //     decoration: BoxDecoration(
-          //       // borderRadius: BorderRadius.circular(20),
-          //       // color: Colors.grey[200],
-          //       // color: Color(0xFFFAF6FD),
-          //       // cho
-          //       // borderRadius: BorderRadiusGeometry.circular(10),
-          //     ),
-          //     child: Row(
-          //       children: [
-          //         // Icon(Icons.home, color: Color(0xFFF64BCE3)),
-          //         Icon(Icons.calendar_today, color: Colors.grey),
-          //         // SizedBox(width: 5),
-          //         // Text('Home', style: TextStyle(color: Color(0xFFF64BCE3))),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-
-          // GestureDetector(
-          //   child: Container(
-          //     padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          //     decoration: BoxDecoration(
-          //       // borderRadius: BorderRadius.circular(20),
-          //       // color: Colors.grey[200],
-          //       // color: Color(0xFFFAF6FD),
-          //       // cho
-          //       // borderRadius: BorderRadiusGeometry.circular(10),
-          //     ),
-          //     child: Row(
-          //       children: [
-          //         // Icon(Icons.home, color: Color(0xFFF64BCE3)),
-          //         Icon(Icons.card_giftcard, color: Colors.grey),
-
-          //         // SizedBox(width: 5),
-          //         // Text('Home', style: TextStyle(color: Color(0xFFF64BCE3))),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-
-          // GestureDetector(
-          //   child: Container(
-          //     padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          //     decoration: BoxDecoration(
-          //       // borderRadius: BorderRadius.circular(20),
-          //       // color: Colors.grey[200],
-          //       // color: Color(0xFFFAF6FD),
-          //       // cho
-          //       // borderRadius: BorderRadiusGeometry.circular(10),
-          //     ),
-          //     child: Row(
-          //       children: [
-          //         // Icon(Icons.home, color: Color(0xFFF64BCE3)),
-          //         Icon(Icons.person, color: Colors.grey),
-
-          //         // SizedBox(width: 5),
-          //         // Text('Home', style: Te/xtStyle(color: Color(0xFFF64BCE3))),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-          // ],
         ),
       ),
     );

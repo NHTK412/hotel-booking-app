@@ -1,3 +1,8 @@
 {
-    "cmake.sourceDirectory": "D:/Programming_Language/Flutter/Project_LTTBDT_UTH_Mobile/hotel_booking_app/linux"
+    "cmake.sourceDirectory": "D:/Programming_Language/Flutter/Project_LTTBDT_UTH_Mobile/hotel_booking_app/linux",
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#40290E",
+        "titleBar.activeBackground": "#5A3913",
+        "titleBar.activeForeground": "#FDFBF8"
+    }
 }

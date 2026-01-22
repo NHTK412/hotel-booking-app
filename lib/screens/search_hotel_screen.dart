@@ -1,4 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hotel_booking_app/config/app_config.dart';
+import 'package:hotel_booking_app/data/model/accommodation/accommodation_summary.dart';
+import 'package:hotel_booking_app/data/model/api_response.dart';
+import 'package:hotel_booking_app/data/repositories/accommodation_repository.dart';
+import 'package:hotel_booking_app/data/service/accommodation_service.dart';
 import 'package:hotel_booking_app/screens/hotel_list_screen.dart';
 
 class SearchHotelScreen extends StatefulWidget {
@@ -9,6 +17,54 @@ class SearchHotelScreen extends StatefulWidget {
 }
 
 class _SearchHotelScreenState extends State<SearchHotelScreen> {
+  late List<AccommodationSummary> searchResults;
+
+  // Biến trạng thái tải dữ liệu ( true - đang tải, false - đã tải xong )
+  late bool isLoading;
+
+  late bool isError;
+
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    searchResults = [];
+    isLoading = false;
+    isError = false;
+  }
+
+  void fetchSearchResults(String keyword, int page, int size) async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      final ApiResponse<List<AccommodationSummary>> response =
+          await AccommodationRepository(
+            AccommodationService(),
+          ).getAllAccommodationsBySearch(keyword, page, size);
+
+      if (response.data != null) {
+        debugPrint("Search results count: ${response.data!.length}");
+        setState(() {
+          searchResults = response.data!;
+        });
+      }
+    } catch (e) {
+      // Xử lý lỗi nếu cần
+      setState(() {
+        isError = true;
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,16 +80,56 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
 
             // Danh sách kết quả cuộn được
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                itemCount: 5, // Số lượng kết quả
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0),
-                    child: buildResultCard(),
-                  );
-                },
-              ),
+              child: (isLoading)
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.blueAccent,
+                      ),
+                    )
+                  : (isError)
+                  ? Center(
+                      child: Text(
+                        "Đã có lỗi xảy ra. Vui lòng thử lại.",
+                        style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                      ),
+                    )
+                  : (searchResults.isEmpty)
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Icon(Icons.room_preferences, size: 50, color: Colors.grey[300]),
+                          Icon(
+                            // Icons.favorite_border,
+                            Icons.search_off,
+                            size: 50,
+                            color: Colors.grey[300],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            // "Không có phòng nào",
+                            // "Chưa có khách sạn yêu thích",
+                            "Chưa có kết quả tìm kiếm",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      itemCount: searchResults.length, // Số lượng kết quả
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 20.0),
+                          child: buildResultCard(
+                            accommodation: searchResults[index],
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -41,15 +137,10 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
     );
   }
 
-  Widget buildResultCard() {
+  Widget buildResultCard({required AccommodationSummary accommodation}) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const HotelListScreen(accommodationId: 1),
-          ),
-        );
+        context.push("/accommodation/${accommodation.accommodationId}");
       },
       child: Container(
         decoration: BoxDecoration(
@@ -66,35 +157,74 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Phần ảnh với Badge loại hình
+            // --- 1. Phần ảnh ---
             Stack(
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(20.0),
                   ),
-                  child: const Image(
+                  child: Image(
                     image: NetworkImage(
-                      "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1080&auto=format&fit=crop",
+                      "${AppConfig.baseUrl}images/${accommodation.image}",
                     ),
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: 180,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 180,
+                      color: Colors.grey[200],
+                      child: const Center(child: Icon(Icons.broken_image)),
+                    ),
                   ),
                 ),
+
+                // Badge Loại hình (Góc trái)
                 Positioned(
                   top: 12,
                   left: 12,
                   child: _buildBadge(
                     Icons.hotel,
-                    "Khách sạn",
+                    accommodation.type ?? "Loại",
                     Colors.blueAccent,
                   ),
                 ),
+
+                // Badge Giảm giá (Góc phải - MỚI THÊM)
+                if (accommodation.hasDiscount)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        accommodation.getDiscountLabel(), // Ví dụ: -20%
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
 
-            // Phần thông tin chi tiết
+            // --- 2. Phần thông tin chi tiết ---
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -103,10 +233,13 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          "The Grand Hotel ABC",
-                          style: TextStyle(
+                          accommodation.accommodationName ?? "Tên khách sạn",
+                          maxLines: 1,
+                          overflow: TextOverflow
+                              .ellipsis, // Thêm cái này để tránh lỗi tràn text
+                          style: const TextStyle(
                             fontSize: 18.0,
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.5,
@@ -121,9 +254,9 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
                             color: Colors.amber,
                           ),
                           const SizedBox(width: 4),
-                          const Text(
-                            "4.5",
-                            style: TextStyle(
+                          Text(
+                            "${accommodation.averageRating ?? 0.0}",
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -134,7 +267,7 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
                   ),
                   const SizedBox(height: 8.0),
 
-                  // Địa điểm & Khoảng cách
+                  // Địa điểm
                   Row(
                     children: [
                       Icon(
@@ -143,11 +276,15 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
                         color: Colors.grey[600],
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        "Thuận Giao, Thuận An • 3 km",
-                        style: TextStyle(
-                          fontSize: 13.0,
-                          color: Colors.grey[600],
+                      Expanded(
+                        child: Text(
+                          accommodation.address ?? "Địa chỉ khách sạn",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.0,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ),
                     ],
@@ -157,35 +294,61 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
                   const Divider(height: 1),
                   const SizedBox(height: 12.0),
 
-                  // Giá tiền được làm nổi bật
+                  // --- 3. Giá tiền (CẬP NHẬT LOGIC GIẢM GIÁ) ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment
+                        .end, // Căn đáy để giá tiền thẳng hàng
                     children: [
                       const Text(
                         "Giá mỗi đêm",
                         style: TextStyle(color: Colors.grey, fontSize: 13),
                       ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: "500,000",
-                              style: TextStyle(
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF64BCE3),
+
+                      // Cột hiển thị giá (Giá gốc + Giá giảm)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // Nếu có giảm giá -> Hiện giá gốc gạch ngang
+                          if (accommodation.hasDiscount)
+                            Text(
+                              "${accommodation.getOriginalPriceToString()} VND",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey,
+                                decoration:
+                                    TextDecoration.lineThrough, // Gạch ngang
                               ),
                             ),
+
+                          // Giá cuối cùng (Final Price)
+                          Text.rich(
                             TextSpan(
-                              text: " VND",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey[700],
-                              ),
+                              children: [
+                                TextSpan(
+                                  text: accommodation.getFinalPriceToString(),
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                    // Đổi màu đỏ nếu đang giảm giá cho nổi bật
+                                    color: accommodation.hasDiscount
+                                        ? Colors.redAccent
+                                        : const Color(0xFF64BCE3),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: " VND",
+                                  style: TextStyle(
+                                    fontSize:
+                                        14, // Nhỏ hơn số tiền một chút cho đẹp
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -198,12 +361,16 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
     );
   }
 
+  // Helper để build badge loại hình (giữ nguyên hoặc tùy chỉnh)
   Widget _buildBadge(IconData icon, String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -212,12 +379,37 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
           const SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+            ),
           ),
         ],
       ),
     );
   }
+
+  // Widget _buildBadge(IconData icon, String label, Color color) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white.withOpacity(0.9),
+  //       borderRadius: BorderRadius.circular(10),
+  //     ),
+  //     child: Row(
+  //       mainAxisSize: MainAxisSize.min,
+  //       children: [
+  //         Icon(icon, size: 14, color: color),
+  //         const SizedBox(width: 4),
+  //         Text(
+  //           label,
+  //           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget buildSearchBar() {
     return Row(
@@ -236,6 +428,12 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
               ],
             ),
             child: TextField(
+              onSubmitted: (value) {
+                String keyword = value.trim();
+                if (keyword.isNotEmpty) {
+                  fetchSearchResults(keyword, 0, 10);
+                }
+              },
               decoration: InputDecoration(
                 hintText: 'Bạn muốn đi đâu?',
                 hintStyle: TextStyle(color: Colors.grey[400]),
@@ -243,12 +441,14 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 15),
               ),
+              controller: _searchController,
             ),
           ),
         ),
         const SizedBox(width: 10),
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          // onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           child: const Text(
             "Hủy",
             style: TextStyle(

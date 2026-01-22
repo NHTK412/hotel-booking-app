@@ -13,8 +13,8 @@ import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
 
 class BookingDetail {
   final int bookingId;
-  final DateTime checkInDate;
-  final DateTime checkOutDate;
+  final DateTime checkInAt;
+  final DateTime checkOutAt;
   final String customerEmail;
   final String customerName;
   final String customerPhone;
@@ -22,11 +22,24 @@ class BookingDetail {
   final double finalPrice;
   final double originalPrice;
   final BookingStatusEnum status;
+  
+
+    //   "roomNumber": "P102 - Deluxe",
+    // "roomType": "Deluxe Ocean View",
+    // "status": "WAITING_FOR_PAYMENT"
+
+    final String roomNumber;
+    final String roomType;
+    final String accommodationName;
+    final double lat;
+    final double lng;
+
+    final int reviewId;
 
   BookingDetail({
     required this.bookingId,
-    required this.checkInDate,
-    required this.checkOutDate,
+    required this.checkInAt,
+    required this.checkOutAt,
     required this.customerEmail,
     required this.customerName,
     required this.customerPhone,
@@ -34,13 +47,19 @@ class BookingDetail {
     required this.finalPrice,
     required this.originalPrice,
     required this.status,
+    required this.roomNumber,
+    required this.roomType,
+    required this.accommodationName,
+    required this.lat,
+    required this.lng,
+    required this.reviewId,
   });
 
   factory BookingDetail.fromJson(Map<String, dynamic> json) {
     return BookingDetail(
       bookingId: json['bookingId'],
-      checkInDate: DateTime.parse(json['checkInDate']),
-      checkOutDate: DateTime.parse(json['checkOutDate']),
+      checkInAt: DateTime.parse(json['checkInAt']),
+      checkOutAt: DateTime.parse(json['checkOutAt']),
       customerEmail: json['customerEmail'],
       customerName: json['customerName'],
       customerPhone: json['customerPhone'],
@@ -48,6 +67,12 @@ class BookingDetail {
       finalPrice: (json['finalPrice'] as num).toDouble(),
       originalPrice: (json['originalPrice'] as num).toDouble(),
       status: BookingStatusEnum.fromJson(json['status']),
+      roomNumber: json['roomNumber'],
+      roomType: json['roomType'],
+      accommodationName: json['accommodationName'],
+      lat: (json['lat'] as num).toDouble(),
+      lng: (json['lng'] as num).toDouble(),
+      reviewId: json['reviewId'] ?? 0,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:hotel_booking_app/data/model/accommodation/accommodation_detail.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
@@ -23,6 +24,7 @@ class _HotelListScreenState extends State<HotelListScreen> {
 
   AccommodationDetail? _accommodationDetail;
   bool _isLoading = true;
+  bool _isUpdatingFavorite = false;
 
   @override
   void initState() {
@@ -140,17 +142,20 @@ class _HotelListScreenState extends State<HotelListScreen> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: detail.roomTypes?.length ?? 0,
           separatorBuilder: (_, __) => const SizedBox(height: 15),
-          itemBuilder: (context, index) =>
-              _buildRoomCard(detail.roomTypes![index], () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RoomDetailScreen(
-                      roomTypeId: detail.roomTypes![index].roomTypeId!,
-                    ),
-                  ),
-                );
-              }),
+          itemBuilder: (context, index) => _buildRoomCard(
+            detail.roomTypes![index],
+            () {
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => RoomDetailScreen(
+              //       roomTypeId: detail.roomTypes![index].roomTypeId!,
+              //     ),
+              //   ),
+              // );
+              context.push("/room-type/${detail.roomTypes![index].roomTypeId}");
+            },
+          ),
           // itemBuilder: (context, index) =>
           //     Text("${detail.roomTypes![index].roomTypeId}"),
         ),
@@ -163,7 +168,8 @@ class _HotelListScreenState extends State<HotelListScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildIconNav(Icons.arrow_back_ios_new, () => Navigator.pop(context)),
+        // _buildIconNav(Icons.arrow_back_ios_new, () => Navigator.pop(context)),
+        _buildIconNav(Icons.arrow_back_ios_new, () => context.pop()),
         const Text(
           "Chi Tiết Khách Sạn",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -215,11 +221,27 @@ class _HotelListScreenState extends State<HotelListScreen> {
   Widget _buildFavoriteButton(AccommodationDetail detail) {
     bool isFav = detail.isFavorite ?? false;
     return IconButton(
-      onPressed: () async {
-        ApiResponse<AccommodationDetail> result = await accommodationRepository
-            .updateFavoriteByAccommondationId(detail.accommodationId!, !isFav);
-        setState(() => _accommodationDetail = result.data);
-      },
+      onPressed: _isUpdatingFavorite
+          ? null
+          : () async {
+              setState(() => _isUpdatingFavorite = true);
+              try {
+                final result = await accommodationRepository
+                    .updateFavoriteByAccommondationId(
+                      detail.accommodationId!,
+                      !isFav,
+                    );
+                setState(() {
+                  _accommodationDetail = result.data;
+                  _isUpdatingFavorite = false;
+                });
+              } catch (e) {
+                setState(() => _isUpdatingFavorite = false);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
+              }
+            },
       icon: Icon(
         isFav ? Icons.favorite : Icons.favorite_border,
         color: isFav ? Colors.red : Colors.grey,
@@ -251,13 +273,6 @@ class _HotelListScreenState extends State<HotelListScreen> {
 
   Widget _buildRoomCard(RoomTypeSummary room, Function() onTap) {
     return GestureDetector(
-      // onTap: () => Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (_) => DetailCart(roomTypeId: room.roomTypeId ?? 1),
-      //   ),
-
-      // ),
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
@@ -273,25 +288,64 @@ class _HotelListScreenState extends State<HotelListScreen> {
         ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(16),
-              ),
-              child: Image.network(
-                "${AppConfig.baseUrl}images/${room.image}",
-                width: 110,
-                height: 110,
-                fit: BoxFit.cover,
-              ),
+            // --- 1. ẢNH VÀ BADGE GIẢM GIÁ ---
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(16),
+                  ),
+                  child: Image.network(
+                    "${AppConfig.baseUrl}images/${room.image}",
+                    width: 120, // Tăng nhẹ width để badge đỡ che ảnh
+                    height: 120,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 120,
+                      height: 120,
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.broken_image),
+                    ),
+                  ),
+                ),
+                // Badge giảm giá
+                if (room.hasDiscount)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        room.getDiscountLabel(), // Ví dụ "-20%"
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
+
+            // --- 2. THÔNG TIN PHÒNG ---
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Tên và Sao
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Text(
@@ -300,36 +354,62 @@ class _HotelListScreenState extends State<HotelListScreen> {
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
-                            maxLines: 1,
+                            maxLines: 2, // Cho phép xuống dòng nếu tên dài
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 4),
                         _buildStar(room.star ?? 0),
                       ],
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      "Standard King Bed",
+                      "Standard King Bed", // Hardcode hoặc lấy từ model nếu có
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                    const SizedBox(height: 12),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '${room.getPriceToString()} VNĐ',
+                    const SizedBox(height: 8),
+
+                    // --- 3. HIỂN THỊ GIÁ ---
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Giá gốc (Gạch ngang - Chỉ hiện khi có giảm giá)
+                        if (room.hasDiscount)
+                          Text(
+                            "${room.getOriginalPriceToString()} VNĐ",
                             style: const TextStyle(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 11,
+                              color: Colors.grey,
+                              decoration: TextDecoration.lineThrough,
                             ),
                           ),
-                          const TextSpan(
-                            text: ' /đêm',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+
+                        // Giá cuối cùng (Final Price)
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: room.getFinalPriceToString(),
+                                style: TextStyle(
+                                  color: room.hasDiscount
+                                      ? Colors.redAccent
+                                      : Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const TextSpan(
+                                text: ' VNĐ/đêm',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
