@@ -22,19 +22,20 @@ class BookingDetail {
   final double finalPrice;
   final double originalPrice;
   final BookingStatusEnum status;
-  
 
-    //   "roomNumber": "P102 - Deluxe",
-    // "roomType": "Deluxe Ocean View",
-    // "status": "WAITING_FOR_PAYMENT"
+  // final int roomTypeId;
 
-    final String roomNumber;
-    final String roomType;
-    final String accommodationName;
-    final double lat;
-    final double lng;
+  //   "roomNumber": "P102 - Deluxe",
+  // "roomType": "Deluxe Ocean View",
+  // "status": "WAITING_FOR_PAYMENT"
 
-    final int reviewId;
+  final String roomNumber;
+  final String roomType;
+  final String accommodationName;
+  final double lat;
+  final double lng;
+
+  final int reviewId;
 
   BookingDetail({
     required this.bookingId,

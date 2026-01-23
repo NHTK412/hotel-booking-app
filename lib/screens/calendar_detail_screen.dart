@@ -3,13 +3,19 @@ import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/data/enum/booking_status_enum.dart';
 import 'package:hotel_booking_app/data/model/api_response.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
+import 'package:hotel_booking_app/data/model/booking/booking_request.dart';
 // import 'package:hotel_booking_app/data/model/booking/booking_detail.dart'; // Có thể không cần nếu dùng Summary cho list
 import 'package:hotel_booking_app/data/model/booking/booking_summary.dart';
+import 'package:hotel_booking_app/data/model/zalopay/zalopay_request.dart';
+import 'package:hotel_booking_app/data/model/zalopay/zalopay_response.dart';
 import 'package:hotel_booking_app/data/repositories/booking_repostiory.dart';
 import 'package:hotel_booking_app/data/repositories/review_repository.dart';
+import 'package:hotel_booking_app/data/repositories/zalopay_repository.dart';
 import 'package:hotel_booking_app/data/service/booking_service.dart';
 import 'package:hotel_booking_app/data/service/review_service.dart';
+import 'package:hotel_booking_app/data/service/zalopay_service.dart';
 import 'package:hotel_booking_app/screens/map_screen.dart';
+import 'package:hotel_booking_app/screens/web_view_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -237,6 +243,82 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
     } else {
       throw 'Could not launch $googleMapsUrl';
     }
+  }
+
+  Future<void> _handlePayment(BookingDetail bookingDetail) async {
+    setState(() => _isLoading = true);
+
+    try {
+      // B1: Tạo Booking Request Object
+      // BookingRequest bookingRequest = BookingRequest(
+      //   // roomTypeId: bookingDetail.,
+      //   customerName: bookingDetail.customerName,
+      //   customerPhone: bookingDetail.customerPhone,
+      //   customerEmail: bookingDetail.customerEmail,
+      //   checkInDate: bookingDetail.checkInAt,
+      //   checkOutDate: bookingDetail.checkOutAt,
+      //   // Lưu ý: Backend có thể cần giá final hoặc tự tính, ở đây mình truyền tạm
+      //   // Bạn cần kiểm tra xem model BookingRequest của bạn có field price không
+      // );
+
+      // B2: Gọi API Tạo Booking
+      // ApiResponse<BookingDetail> result = await BookingRepository(
+      //   bookingService: BookingService(),
+      // ).createBooking(bookingRequest);
+
+      // if (result.code == 200 && result.data != null) {
+      //   print("Booking Created ID: ${result.data!.bookingId}");
+
+      // B3: Gọi API Tạo Payment ZaloPay
+      final ZalopayRequest zalopayRequest = ZalopayRequest(
+        bookingId: bookingDetail.bookingId,
+        // description: "Thanh toán đơn hàng #${result.data!.bookingId}",
+        description: "Thanh toan don hang",
+      );
+
+      ApiResponse<ZalopayResponse> zalopayResult = await ZalopayRepository(
+        zalopayService: ZalopayService(),
+      ).createZalopayPayment(zalopayRequest);
+
+      if (zalopayResult.code == 200 && zalopayResult.data != null) {
+        final zalopayUrl = zalopayResult.data!.orderUrl; // URL thanh toán
+
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => WebViewScreen(url: zalopayUrl),
+            ),
+          );
+        }
+      } else {
+        _showErrorDialog("Lỗi tạo cổng thanh toán: ${zalopayResult.message}");
+      }
+    }
+    //  else {
+    //   _showErrorDialog("Lỗi đặt phòng: ${result.message}");
+    // }
+    // }
+    catch (e) {
+      _showErrorDialog("Đã xảy ra lỗi: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Thông báo"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Đóng"),
+          ),
+        ],
+      ),
+    );
   }
 
   // SỬA: Đổi kiểu đầu vào thành BookingSummary
@@ -523,6 +605,7 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
                                   print(
                                     "Chuyển đến màn hình thanh toán cho booking ${booking.bookingId}",
                                   );
+                                  _handlePayment(booking);
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blueAccent,
