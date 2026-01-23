@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -69,7 +70,7 @@ class _MapScreenState extends State<MapScreen> {
       final Position position = await LocationServider.getCurrentLocation();
       _userLocation = LatLng(position.latitude, position.longitude);
     } catch (e) {
-      debugPrint("⚠️ Không lấy được vị trí user: $e");
+      debugPrint("Không lấy được vị trí user: $e");
     }
   }
 
@@ -99,7 +100,7 @@ class _MapScreenState extends State<MapScreen> {
         }
       }
     } catch (e) {
-      debugPrint("❌ Lỗi API: $e");
+      debugPrint("Lỗi API: $e");
     }
   }
 
@@ -350,8 +351,11 @@ class _MapScreenState extends State<MapScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        // Navigator.pop(context);
                         // Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(id: item.accommodationId)));
+
+                        context.pop();
+                        context.push('/accommodation/${item.accommodationId}');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,

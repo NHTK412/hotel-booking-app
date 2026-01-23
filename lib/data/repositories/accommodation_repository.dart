@@ -73,6 +73,10 @@ class AccommodationRepository {
       final Response response = await accommodationService
           .updateFavoriteByAccommondationId(accommodationId, isFavorite);
 
+      debugPrint(
+        'Update Favorite Response Data: ${response.data}, Status Code: ${response.statusCode}',
+      );
+
       final ApiResponse<AccommodationDetail> apiResponse = ApiResponse.fromJson(
         response.statusCode,
         response.data,
@@ -90,6 +94,10 @@ class AccommodationRepository {
     try {
       final Response response = await accommodationService
           .getAllAccommondationByFavorite();
+
+      debugPrint(
+        'Update Favorite Response Data: ${response.data}, Status Code: ${response.statusCode}',
+      );
 
       final ApiResponse<List<AccommodationSummary>> apiResponse =
           ApiResponse.fromJson(
@@ -142,13 +150,16 @@ class AccommodationRepository {
     int precision,
   ) async {
     try {
-
-      debugPrint("Fetching nearby accommodations for lat: $latitude, lng: $longitude, precision: $precision");
+      debugPrint(
+        "Fetching nearby accommodations for lat: $latitude, lng: $longitude, precision: $precision",
+      );
 
       final Response response = await accommodationService
           .getAllAccommodondationByNearby(latitude, longitude, precision);
 
-        debugPrint("Received response for nearby accommodations: ${response.data}");
+      debugPrint(
+        "Received response for nearby accommodations: ${response.data}",
+      );
 
       final ApiResponse<List<AccommodationSummary>> apiResponse =
           ApiResponse.fromJson(
@@ -163,10 +174,9 @@ class AccommodationRepository {
                 .toList(),
           );
 
-
       debugPrint('Nearby Accommodations: ${apiResponse.data?.length} found.');
       debugPrint('Response Data: ${response.data}');
-      
+
       return apiResponse;
     } catch (e) {
       rethrow;
