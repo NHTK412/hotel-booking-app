@@ -11,12 +11,15 @@ class AuthResponse {
 
   final int? expiresIn;
 
+  final int? userId;
+
   AuthResponse({
     required this.email,
     required this.role,
     required this.accessToken,
     required this.refreshToken,
     required this.expiresIn,
+    required this.userId,
   });
 
   factory AuthResponse.formJson(Map<String, dynamic> json) {
@@ -28,6 +31,7 @@ class AuthResponse {
       accessToken: json['accessToken'] as String?,
       refreshToken: json['refreshToken'] as String?,
       expiresIn: json['expiresIn'] as int?,
+      userId: json['userId'] as int?,
     );
   }
 }

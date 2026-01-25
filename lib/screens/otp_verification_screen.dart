@@ -282,7 +282,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                             // OTP hợp lệ, chuyển
                             String accessToken =
                                 verifyOtpData.accessToken ?? "";
-                            context.read<AppState>().logIn(accessToken);
+                            context.read<AppState>().logIn(accessToken , verifyOtpData.userId);
 
                             // Chuyển hướng về trang đổi mật khẩu
                             context.push("/reset-password");
