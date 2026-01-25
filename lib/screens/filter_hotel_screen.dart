@@ -42,7 +42,7 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
   @override
   void initState() {
     super.initState();
-    _location = "Khách sạn gần bạn";
+    _location = "Chọn điểm đến";
 
     _locationId = 0;
 
