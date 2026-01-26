@@ -271,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
             if (login.code == 200) {
               String accessToken = login.data?.accessToken ?? "";
               if (!context.mounted) return;
-              context.read<AppState>().logIn(accessToken);
+              context.read<AppState>().logIn(accessToken, login.data?.userId);
             }
           } on DioException catch (e) {
             String mess = (e.response?.statusCode == 401)
@@ -368,6 +368,7 @@ class _LoginScreenState extends State<LoginScreen> {
             if (oauthLogin.code == 200 && context.mounted) {
               context.read<AppState>().logIn(
                 oauthLogin.data?.accessToken ?? "",
+                oauthLogin.data?.userId,
               );
             }
           } catch (e) {

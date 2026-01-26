@@ -8,6 +8,7 @@ import 'package:hotel_booking_app/data/model/location/location_response.dart';
 import 'package:hotel_booking_app/data/repositories/location_repository.dart';
 import 'package:hotel_booking_app/data/service/location_service.dart';
 import 'package:hotel_booking_app/data/service/location_servider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationsScreen extends StatefulWidget {
   const LocationsScreen({super.key});
@@ -192,9 +193,16 @@ class _LocationsScreenState extends State<LocationsScreen> {
             Map<String, dynamic> queryParameters = {
               "subAdministrativeArea": sub,
               "administrativeArea": ad,
+              "longitude": longitude,
+              "latitude": latitude,
             };
 
             queryParameters.removeWhere((key, value) => value == null);
+
+            final SharedPreferences prefs =
+                await SharedPreferences.getInstance();
+
+            final String? accessToken = prefs.getString('access_token');
 
             final response = await Dio().get(
               "https://bilateral-misunderstandingly-veola.ngrok-free.dev/api/locations/me",
@@ -202,8 +210,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
               options: Options(
                 headers: {
                   "Content-Type": "application/json",
-                  "Authorization":
-                      "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuZ3V5ZW5odXV0dWFua2hhbmc0MTJAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfQ1VTVE9NRVIiLCJpYXQiOjE3Njg5NzkyMTIsImV4cCI6MTc2OTU4NDAxMn0.6MyZO7MQJw_5i4h0SPdbQ98DWg2nyGDWbQK5cr9P1H4",
+                  "Authorization": "Bearer $accessToken",
                 },
               ),
             );

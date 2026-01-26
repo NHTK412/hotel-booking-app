@@ -344,7 +344,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         String accessToken = authResponse.accessToken ?? "";
 
         // Đăng nhập luôn sau khi đăng ký thành công
-        context.read<AppState>().logIn(accessToken);
+        context.read<AppState>().logIn(accessToken, authResponse.userId);
 
         // Hiển thị thông báo hoặc chuyển trang (logic của appState sẽ tự chuyển trang)
         // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Chào mừng bạn đến với VnTravel!")));

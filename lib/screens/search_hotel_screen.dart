@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hotel_booking_app/config/app_config.dart';
@@ -25,6 +23,15 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
   late bool isError;
 
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final AccommodationRepository _accommodationRepository =
+      AccommodationRepository(AccommodationService());
+
+  bool isLoadingMore = false; 
+  bool hasMore = true;
+  int currentPage = -1;
+  static const int pageSize = 10;
+  String currentKeyword = '';
 
   @override
   void initState() {
@@ -34,34 +41,144 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
     searchResults = [];
     isLoading = false;
     isError = false;
+    currentKeyword = '';
+    currentPage = -1;
+    hasMore = true;
+    isLoadingMore = false;
+
+    _scrollController.addListener(_onScroll);
   }
 
-  void fetchSearchResults(String keyword, int page, int size) async {
-    try {
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _startSearch(String keyword) {
+    final String trimmedKeyword = keyword.trim();
+    if (trimmedKeyword.isEmpty) {
+      setState(() {
+        currentKeyword = '';
+        searchResults = [];
+        isError = false;
+        hasMore = true;
+        currentPage = -1;
+      });
+      return;
+    }
+
+    if (_scrollController.hasClients) { // Kiểm tra nếu controller đã được gắn với ListView
+      _scrollController.jumpTo(0); // Cuộn về đầu danh sách khi bắt đầu tìm kiếm mới
+    }
+
+    setState(() {
+      currentKeyword = trimmedKeyword;
+      searchResults = [];
+      isError = false;
+      hasMore = true;
+      currentPage = -1;
+    });
+
+    _fetchSearchResults();
+  }
+
+  Future<void> _fetchSearchResults({bool loadMore = false}) async {
+    if (currentKeyword.isEmpty) {
+      return;
+    }
+
+    if (!loadMore && isLoading) {
+      return;
+    }
+
+    if (loadMore && (isLoadingMore || !hasMore)) {
+      return;
+    }
+
+    final int targetPage = loadMore ? currentPage + 1 : 0;
+
+    if (loadMore) {
+      setState(() {
+        isLoadingMore = true;
+      });
+    } else {
       setState(() {
         isLoading = true;
+        isError = false;
+        hasMore = true;
       });
+    }
 
+    List<AccommodationSummary> fetchedResults = [];
+    String? error;
+
+    try {
       final ApiResponse<List<AccommodationSummary>> response =
-          await AccommodationRepository(
-            AccommodationService(),
-          ).getAllAccommodationsBySearch(keyword, page, size);
+          await _accommodationRepository.getAllAccommodationsBySearch(
+            currentKeyword,
+            targetPage,
+            pageSize,
+          );
 
-      if (response.data != null) {
-        debugPrint("Search results count: ${response.data!.length}");
-        setState(() {
-          searchResults = response.data!;
-        });
+      if (response.success == true) {
+        fetchedResults = response.data ?? [];
+      } else {
+        error = response.message ?? 'Không thể tải danh sách khách sạn.';
       }
     } catch (e) {
-      // Xử lý lỗi nếu cần
-      setState(() {
-        isError = true;
-      });
-    } finally {
-      setState(() {
+      error = e.toString();
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      if (loadMore) {
+        isLoadingMore = false;
+        if (error == null) {
+          searchResults.addAll(fetchedResults);
+          currentPage = targetPage;
+          hasMore = fetchedResults.length >= pageSize;
+        } else {
+          hasMore = false;
+        }
+      } else {
         isLoading = false;
-      });
+        if (error == null) {
+          searchResults = fetchedResults;
+          currentPage = targetPage;
+          hasMore = fetchedResults.length >= pageSize;
+          isError = false;
+        } else {
+          searchResults = [];
+          isError = true;
+        }
+      }
+    });
+
+    if (loadMore && error != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients || searchResults.isEmpty) {
+      return;
+    }
+
+    const double threshold = 200;
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - threshold &&
+        !isLoading &&
+        !isLoadingMore &&
+        hasMore) {
+      _fetchSearchResults(loadMore: true);
     }
   }
 
@@ -120,8 +237,15 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      itemCount: searchResults.length, // Số lượng kết quả
+                      controller: _scrollController,
+                      itemCount: searchResults.length + (isLoadingMore ? 1 : 0),
                       itemBuilder: (context, index) {
+                        if (index >= searchResults.length) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 20.0),
                           child: buildResultCard(
@@ -431,7 +555,7 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
               onSubmitted: (value) {
                 String keyword = value.trim();
                 if (keyword.isNotEmpty) {
-                  fetchSearchResults(keyword, 0, 10);
+                  _startSearch(keyword);
                 }
               },
               decoration: InputDecoration(

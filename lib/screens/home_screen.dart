@@ -102,6 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
       Map<String, dynamic> queryParameters = {
         "subAdministrativeArea": sub,
         "administrativeArea": ad,
+        "longitude": longitude,
+        "latitude": latitude,
       };
 
       queryParameters.removeWhere((key, value) => value == null);
@@ -200,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _popularFuture = _accommodationRepository.getAllAccommodations(
       page: 0,
-      size: 10,
+      size: 5,
       sortBy: true,
       type: types[typeAccommodationSelect]["json"],
       locationId: locId,

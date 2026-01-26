@@ -25,9 +25,14 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
   late List<RoomTypeSummary> roomTypes;
 
   final RoomTypeService _roomTypeService = RoomTypeService();
+  final ScrollController _scrollController = ScrollController();
 
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _errorMessage;
+  bool _hasMore = true;
+  int _currentPage = 0;
+  static const int _pageSize = 10;
 
   // Logic chọn ngày: Mặc định từ hôm nay đến ngày mai
   DateTimeRange _selectedDateRange = DateTimeRange(
@@ -42,7 +47,7 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
   @override
   void initState() {
     super.initState();
-    _location = "Khách sạn gần bạn";
+    _location = "Chọn điểm đến";
 
     _locationId = 0;
 
@@ -71,9 +76,27 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
     // ];
 
     roomTypes = [];
+    _scrollController.addListener(_onScroll);
   }
 
-  Future<void> _fetchRoomTypes() async {
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchRoomTypes({bool loadMore = false}) async {
+    if (!loadMore && _isLoading) {
+      return;
+    }
+
+    if (loadMore && (_isLoadingMore || !_hasMore)) {
+      return;
+    }
+
+    final int targetPage = loadMore ? _currentPage + 1 : 1;
+
     final String checkInDate = DateFormat(
       'yyyy-MM-dd',
     ).format(_selectedDateRange.start);
@@ -84,10 +107,17 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
     final int? capacity = (_guests <= 0) ? null : _guests;
     final int? bedrooms = (_rooms <= 0) ? null : _rooms;
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (loadMore) {
+      setState(() {
+        _isLoadingMore = true;
+      });
+    } else {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+        _hasMore = true;
+      });
+    }
 
     List<RoomTypeSummary> fetchedRoomTypes = [];
     String? error;
@@ -120,7 +150,7 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
           : null;
 
       final ApiResponse<List<RoomTypeSummary>> apiResponse =
-          await RoomTypeRepository(RoomTypeService()).getAllRoomTypes(
+          await RoomTypeRepository(_roomTypeService).getAllRoomTypes(
             checkInDate: checkInDate,
             checkOutDate: checkOutDate,
             capacity: capacity,
@@ -128,9 +158,9 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
             // city: city,
             // district: district,
             locationId: _locationId,
+            page: targetPage,
+            pageSize: _pageSize,
           );
-
-      roomTypes = apiResponse.data ?? [];
 
       if (apiResponse.success == true) {
         fetchedRoomTypes = apiResponse.data ?? [];
@@ -144,10 +174,52 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
     if (!mounted) return;
 
     setState(() {
-      _isLoading = false;
-      _errorMessage = error;
-      roomTypes = (error == null) ? fetchedRoomTypes : [];
+      if (loadMore) {
+        _isLoadingMore = false;
+        if (error == null) {
+          roomTypes.addAll(fetchedRoomTypes);
+          _currentPage = targetPage;
+          _hasMore = fetchedRoomTypes.length >= _pageSize;
+        } else {
+          _hasMore = false;
+        }
+      } else {
+        _isLoading = false;
+        if (error == null) {
+          roomTypes = fetchedRoomTypes;
+          _currentPage = targetPage;
+          _hasMore = fetchedRoomTypes.length >= _pageSize;
+        } else {
+          roomTypes = [];
+        }
+        _errorMessage = error;
+      }
     });
+
+    if (loadMore && error != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    if (roomTypes.isEmpty) {
+      return;
+    }
+
+    final double threshold = 200;
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - threshold &&
+        !_isLoading &&
+        !_isLoadingMore &&
+        _hasMore) {
+      _fetchRoomTypes(loadMore: true);
+    }
   }
 
   // Hàm format ngày hiển thị
@@ -299,6 +371,7 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,14 +426,23 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
                   ),
                 )
               else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: roomTypes.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 15),
-                  itemBuilder: (context, index) =>
-                      createPopularCard(roomTypes[index]),
+                Column(
+                  children: [
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: roomTypes.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 15),
+                      itemBuilder: (context, index) =>
+                          createPopularCard(roomTypes[index]),
+                    ),
+                    if (_isLoadingMore)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                  ],
                 ),
               const SizedBox(height: 20),
             ],

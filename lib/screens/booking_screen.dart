@@ -45,9 +45,9 @@ class _BookingScreenState extends State<BookingScreen> {
     _checkOutDate = _checkInDate.add(const Duration(days: 1));
 
     // Điền dữ liệu giả lập để test cho nhanh (Có thể xóa sau này)
-    _nameController.text = "Nguyễn Hữu Tuấn Khang";
-    _phoneController.text = "0912345678";
-    _emailController.text = "tuankhang@gmail.com";
+    _nameController.text = "";
+    _phoneController.text = "";
+    _emailController.text = "";
 
     _updateDateFields();
   }

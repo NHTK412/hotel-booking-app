@@ -5,11 +5,16 @@ import 'package:hotel_booking_app/data/model/api_response.dart';
 import 'package:hotel_booking_app/data/model/booking/booking_detail.dart';
 // import 'package:hotel_booking_app/data/model/booking/booking_detail.dart'; // Có thể không cần nếu dùng Summary cho list
 import 'package:hotel_booking_app/data/model/booking/booking_summary.dart';
+import 'package:hotel_booking_app/data/model/zalopay/zalopay_request.dart';
+import 'package:hotel_booking_app/data/model/zalopay/zalopay_response.dart';
 import 'package:hotel_booking_app/data/repositories/booking_repostiory.dart';
 import 'package:hotel_booking_app/data/repositories/review_repository.dart';
+import 'package:hotel_booking_app/data/repositories/zalopay_repository.dart';
 import 'package:hotel_booking_app/data/service/booking_service.dart';
 import 'package:hotel_booking_app/data/service/review_service.dart';
+import 'package:hotel_booking_app/data/service/zalopay_service.dart';
 import 'package:hotel_booking_app/screens/map_screen.dart';
+import 'package:hotel_booking_app/screens/web_view_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -239,6 +244,89 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
     }
   }
 
+  Future<void> _handlePayment(BookingDetail bookingDetail) async {
+    _showBlockingLoader();
+
+    String? redirectUrl;
+    String? errorMessage;
+
+    try {
+      final ZalopayRequest zalopayRequest = ZalopayRequest(
+        bookingId: bookingDetail.bookingId,
+        description: "Thanh toan don hang",
+      );
+
+      ApiResponse<ZalopayResponse> zalopayResult = await ZalopayRepository(
+        zalopayService: ZalopayService(),
+      ).createZalopayPayment(zalopayRequest);
+
+      if (zalopayResult.code == 200 && zalopayResult.data != null) {
+        redirectUrl = zalopayResult.data!.orderUrl;
+      } else {
+        errorMessage = "Lỗi tạo cổng thanh toán: ${zalopayResult.message}";
+      }
+    } catch (e) {
+      errorMessage = "Đã xảy ra lỗi: $e";
+    } finally {
+      _hideBlockingLoader();
+    }
+
+    if (!mounted) return;
+
+    if (redirectUrl != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => WebViewScreen(url: redirectUrl!),
+        ),
+      );
+    } else if (errorMessage != null) {
+      _showErrorDialog(errorMessage);
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Thông báo"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Đóng"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBlockingLoader() {
+    if (!mounted || _isLoading) return;
+
+    _isLoading = true;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (dialogContext) => const Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    ).then((_) {
+      if (mounted) {
+        _isLoading = false;
+      }
+    });
+  }
+
+  void _hideBlockingLoader() {
+    if (!_isLoading || !mounted) return;
+
+    _isLoading = false;
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
   // SỬA: Đổi kiểu đầu vào thành BookingSummary
   void _showBookingDetailModal(int bookingId) {
     showModalBottomSheet(
@@ -417,71 +505,54 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () async {
-                                  // Hiển thị loading dialog
-                                  showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (BuildContext dialogContext) {
-                                      return Dialog(
-                                        backgroundColor: Colors.transparent,
-                                        child: Center(
-                                          child: CircularProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.redAccent,
-                                                ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
+                                  final bottomSheetContext = context;
+                                  final rootContext = this.context;
+
+                                  _showBlockingLoader();
+
+                                  bool cancelSuccess = false;
+                                  String? errorMessage;
 
                                   try {
                                     await bookingRepository.cancelBookingById(
                                       booking.bookingId,
                                     );
-
-                                    // Đóng loading dialog
-                                    if (context.mounted) {
-                                      context.pop();
-
-                                      // Hiển thị thông báo thành công
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Hủy đặt phòng thành công',
-                                          ),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-
-                                      // Đóng modal bottom sheet
-                                      context.pop();
-
-                                      // Reload danh sách bằng setState
-                                      if (mounted) {
-                                        setState(() {});
-                                      }
-                                    }
+                                    cancelSuccess = true;
                                   } catch (e) {
-                                    // Đóng loading dialog
-                                    if (context.mounted) {
-                                      context.pop();
+                                    errorMessage =
+                                        'Lỗi khi hủy: ${e.toString()}';
+                                  } finally {
+                                    _hideBlockingLoader();
+                                  }
 
-                                      // Hiển thị lỗi
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Lỗi khi hủy: ${e.toString()}',
-                                          ),
-                                          duration: const Duration(seconds: 2),
-                                        ),
-                                      );
+                                  if (!mounted) return;
+
+                                  if (cancelSuccess) {
+                                    if (bottomSheetContext.mounted) {
+                                      bottomSheetContext.pop();
                                     }
+
+                                    ScaffoldMessenger.of(
+                                      rootContext,
+                                    ).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Hủy đặt phòng thành công',
+                                        ),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+
+                                    setState(() {});
+                                  } else if (errorMessage != null) {
+                                    ScaffoldMessenger.of(
+                                      rootContext,
+                                    ).showSnackBar(
+                                      SnackBar(
+                                        content: Text(errorMessage),
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -523,6 +594,7 @@ class _CalendarDetailScreenState extends State<CalendarDetailScreen> {
                                   print(
                                     "Chuyển đến màn hình thanh toán cho booking ${booking.bookingId}",
                                   );
+                                  _handlePayment(booking);
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blueAccent,
