@@ -628,7 +628,6 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
         ),
         child: Row(
           children: [
-            // --- 1. ẢNH & BADGE GIẢM GIÁ ---
             Stack(
               children: [
                 ClipRRect(
@@ -714,7 +713,8 @@ class _FilterHotelScreenState extends State<FilterHotelScreen> {
 
                   // Địa chỉ (Có thể lấy từ model nếu có field address)
                   Text(
-                    "Alice Springs, Australia",
+                    // "Alice Springs, Australia",
+                    roomType?.address ?? "Vị trí không xác định",
                     style: TextStyle(color: Colors.grey[500], fontSize: 12),
                   ),
                   const SizedBox(

@@ -437,7 +437,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
           _showErrorDialog("Lỗi tạo cổng thanh toán: ${zalopayResult.message}");
         }
       } else {
-        _showErrorDialog("Lỗi đặt phòng: ${result.message}");
+        // _showErrorDialog("Lỗi đặt phòng: ${result.message}");
+        _showErrorDialog("Lỗi đặt phòng: Loại phòng không còn sẵn có.");
+
       }
     } catch (e) {
       _showErrorDialog("Đã xảy ra lỗi: $e");

@@ -13,6 +13,7 @@ class RoomTypeSummary {
   final double? price;
   final String? image;
   final double? discount;
+  final String? address;
 
   RoomTypeSummary({
     required this.roomTypeId,
@@ -21,6 +22,7 @@ class RoomTypeSummary {
     required this.price,
     required this.image,
     required this.discount,
+    required this.address,
   });
 
   factory RoomTypeSummary.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class RoomTypeSummary {
       price: json['price'] as double?,
       image: json['image'] as String?,
       discount: json['discount'] as double?,
+      address: json['address'] as String?,
     );
   }
 

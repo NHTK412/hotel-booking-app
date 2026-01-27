@@ -62,7 +62,8 @@ class BottomCustom extends StatelessWidget {
     final items = [
       {'icon': Icons.home, 'label': 'Home'},
       {'icon': Icons.calendar_today, 'label': 'Calendar'},
-      {'icon': Icons.card_giftcard, 'label': 'Gifts'},
+      // {'icon': Icons.card_giftcard, 'label': 'Gifts'},
+      {'icon': Icons.favorite, 'label': 'Favorites'},
       {'icon': Icons.person, 'label': 'Profile'},
     ];
 

@@ -51,8 +51,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
       final response = await _bookingRepository.getBookingByMe(
         // month: date.month,
         // year: date.year,
-        month: 1,
-        year: 2026,
+        // month: 1,
+        // year: 2026,
+        year: date.year,
+        month: date.month,
         size: 100, // Lấy số lượng lớn để bao phủ cả tháng
         status: BookingStatusEnum.pending, // Chỉ lấy các booking đang chờ xử lý
       );
@@ -207,7 +209,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
         // 2. Khi lướt qua tháng mới -> Gọi API lấy dữ liệu marker cho tháng đó
         onPageChanged: (focusedDay) {
-          _focusedDay = focusedDay;
+          // _focusedDay = focusedDay;
+          // _fetchMonthBookings(focusedDay);
+          debugPrint("Tháng mới: ${focusedDay.month}-${focusedDay.year}");
+          setState(() {
+            _focusedDay = focusedDay;
+          });
           _fetchMonthBookings(focusedDay);
         },
 
